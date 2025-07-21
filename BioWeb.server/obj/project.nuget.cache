@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "A2e3LLwEYHk=",
+  "success": true,
+  "projectFilePath": "/home/sterb/dev/Bio_test/BioWeb.server/BioWeb.server.csproj",
+  "expectedPackageFiles": [
+    "/home/sterb/.nuget/packages/microsoft.aspnetcore.openapi/9.0.6/microsoft.aspnetcore.openapi.9.0.6.nupkg.sha512",
+    "/home/sterb/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
