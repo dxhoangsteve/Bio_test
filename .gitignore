@@ -1,0 +1,8 @@
+./BioWeb.client/bin
+./BioWeb.client/obj
+./BioWeb.server/obj
+./BioWeb.server/bin
+./BioWeb.server/Properties/launchSettings.json
+./BioWeb.server/data/seeddata.cs
+./BioWeb.server/data/seeddata.cs.bak
+./BioWeb.server/Migrations
