@@ -1,7 +1,7 @@
 namespace BioWeb.Server.ViewModels.DTOs
 {
     /// <summary>
-    /// DTO cho thông tin cấu hình site
+    /// DTO cho thông tin cấu hình gửi cho user hoặc quest
     /// </summary>
     public class SiteConfigurationDto
     {

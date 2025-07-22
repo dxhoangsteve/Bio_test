@@ -16,6 +16,7 @@ namespace BioWeb.Server.ViewModels.Responses
         public string FacebookURL { get; set; } = "";
         public string GitHubURL { get; set; } = "";
         public string LinkedInURL { get; set; } = "";
+        public int ViewCount { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 
@@ -37,7 +38,7 @@ namespace BioWeb.Server.ViewModels.Responses
     /// <summary>
     /// Response model chung cho API
     /// </summary>
-    public class ApiResponse<T>
+    public class SiteConfigurationApiResponse<T>
     {
         public bool Success { get; set; }
         public string Message { get; set; } = "";
@@ -48,7 +49,7 @@ namespace BioWeb.Server.ViewModels.Responses
     /// <summary>
     /// Response model đơn giản
     /// </summary>
-    public class SimpleResponse
+    public class SiteConfigurationSimpleResponse
     {
         public bool Success { get; set; }
         public string Message { get; set; } = "";

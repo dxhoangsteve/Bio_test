@@ -33,6 +33,7 @@ namespace BioWeb.Server.Services
         {
             return await _context.AdminUsers
                 .FirstOrDefaultAsync(u => u.Username == username);
+            /// Nếu là 1 web nhiều người dùng thì sẽ kiểm tra thêm role để xác định loại user nữa 
         }
     }
 }
