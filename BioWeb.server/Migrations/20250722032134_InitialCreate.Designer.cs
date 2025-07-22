@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BioWeb.server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250721202418_UpdateContactModel")]
-    partial class UpdateContactModel
+    [Migration("20250722032134_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -257,6 +257,9 @@ namespace BioWeb.server.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
 
                     b.HasKey("ConfigID");
 

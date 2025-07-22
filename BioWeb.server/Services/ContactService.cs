@@ -55,7 +55,7 @@ namespace BioWeb.Server.Services
         /// </summary>
         public async Task<string?> GetContactEmailAsync()
         {
-            var config = await _context.SiteConfigurations.FirstOrDefaultAsync();
+            var config = await _context.Contacts.FirstOrDefaultAsync();
             return config?.Email;
         }
 

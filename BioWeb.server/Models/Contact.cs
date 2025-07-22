@@ -22,5 +22,7 @@ namespace BioWeb.Server.Models
         public DateTime SentDate { get; set; } = DateTime.UtcNow;
 
         public bool IsRead { get; set; } = false;
+
+        public int ReadCount { get; set; } = 0;
     }
 }

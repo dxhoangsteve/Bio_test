@@ -6,3 +6,4 @@
 ./BioWeb.server/data/seeddata.cs
 ./BioWeb.server/data/seeddata.cs.bak
 ./BioWeb.server/Migrations
+.vscode

@@ -134,6 +134,9 @@ namespace BioWeb.server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ReadCount")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("datetime2");
 
@@ -254,6 +257,9 @@ namespace BioWeb.server.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
 
                     b.HasKey("ConfigID");
 

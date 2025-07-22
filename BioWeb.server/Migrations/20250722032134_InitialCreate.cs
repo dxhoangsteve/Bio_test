@@ -48,9 +48,6 @@ namespace BioWeb.server.Migrations
                     FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    GitHubURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    LinkedInURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    FacebookURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     SentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -89,9 +86,14 @@ namespace BioWeb.server.Migrations
                     JobTitle = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     AvatarURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     BioSummary = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    GitHubURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    LinkedInURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    FacebookURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     CV_FilePath = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    ViewCount = table.Column<int>(type: "int", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

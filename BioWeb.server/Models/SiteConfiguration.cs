@@ -40,6 +40,8 @@ namespace BioWeb.Server.Models
         [StringLength(255)]
         public string CV_FilePath { get; set; } = "";
 
+        public int ViewCount { get; set; } = 0;
+
         public DateTime UpdatedAt { get; set; }
     }
 }

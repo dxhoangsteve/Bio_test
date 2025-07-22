@@ -3,14 +3,13 @@ using BioWeb.Server.Models;
 
 namespace BioWeb.Server.Data
 {
-    // Sử dụng DbContext
+    // Lớp DbContext chính
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
 
-        // Khai báo các DbSet
         public DbSet<AdminUser> AdminUsers { get; set; }
         public DbSet<SiteConfiguration> SiteConfigurations { get; set; }
         public DbSet<Project> Projects { get; set; }

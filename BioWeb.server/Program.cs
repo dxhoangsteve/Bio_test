@@ -20,13 +20,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 // 2.5. Thêm Scalar UI
 builder.Services.AddOpenApi();
 
 // 2.6. Đăng ký services
 builder.Services.AddScoped<BioWeb.Server.Services.IAuthService, BioWeb.Server.Services.AuthService>();
-
+builder.Services.AddScoped<BioWeb.Server.Services.IContactService, BioWeb.Server.Services.ContactService>();
+builder.Services.AddScoped<BioWeb.Server.Services.ISiteConfigurationService, BioWeb.Server.Services.SiteConfigurationService>();
+builder.Services.AddScoped<BioWeb.Server.Services.IProjectService, BioWeb.Server.Services.ProjectService>();
 
 // --- PHẦN 3: XÂY DỰNG ỨNG DỤNG ---
 var app = builder.Build();

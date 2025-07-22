@@ -57,53 +57,6 @@ namespace BioWeb.Server.Controllers
         }
 
         /// <summary>
-        /// Lấy contact theo ID (chỉ admin)
-        /// </summary>
-        [HttpGet("{id}")]
-        [AdminAuth]
-        public async Task<ActionResult<ContactApiResponse<ContactResponse>>> GetContact(int id)
-        {
-            try
-            {
-                var contact = await _contactService.GetContactByIdAsync(id);
-                if (contact == null)
-                {
-                    return NotFound(new ContactApiResponse<ContactResponse>
-                    {
-                        Success = false,
-                        Message = "Không tìm thấy contact"
-                    });
-                }
-
-                var response = new ContactResponse
-                {
-                    ContactID = contact.ContactID,
-                    FullName = contact.FullName,
-                    Email = contact.Email,
-                    Message = contact.Message,
-                    SentDate = contact.SentDate,
-                    IsRead = contact.IsRead,
-                    ReadCount = contact.ReadCount
-                };
-
-                return Ok(new ContactApiResponse<ContactResponse>
-                {
-                    Success = true,
-                    Message = "Lấy thông tin contact thành công",
-                    Data = response
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ContactApiResponse<ContactResponse>
-                {
-                    Success = false,
-                    Message = $"Lỗi: {ex.Message}"
-                });
-            }
-        }
-
-        /// <summary>
         /// Cập nhật contact (chỉ admin)
         /// </summary>
         [HttpPut("{id}")]

@@ -36,7 +36,7 @@ namespace BioWeb.Server.ViewModels.Responses
     }
 
     /// <summary>
-    /// Response model chung cho API
+    /// Response của site
     /// </summary>
     public class SiteConfigurationApiResponse<T>
     {
@@ -47,7 +47,7 @@ namespace BioWeb.Server.ViewModels.Responses
     }
 
     /// <summary>
-    /// Response model đơn giản
+    /// Response model đơn giản của site
     /// </summary>
     public class SiteConfigurationSimpleResponse
     {
