@@ -200,6 +200,77 @@ namespace BioWeb.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Lấy thông tin About Me - Bio summary (public)
+        /// </summary>
+        [HttpGet("about-me")]
+        public async Task<ActionResult<SiteConfigurationApiResponse<AboutMeResponse>>> GetAboutMe()
+        {
+            try
+            {
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
+
+                var aboutMe = new AboutMeResponse
+                {
+                    FullName = config.FullName,
+                    JobTitle = config.JobTitle,
+                    AvatarURL = config.AvatarURL,
+                    BioSummary = config.BioSummary
+                };
+
+                return Ok(new SiteConfigurationApiResponse<AboutMeResponse>
+                {
+                    Success = true,
+                    Message = "Lấy thông tin About Me thành công",
+                    Data = aboutMe
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new SiteConfigurationApiResponse<AboutMeResponse>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Lấy thông tin Contact - liên hệ (public)
+        /// </summary>
+        [HttpGet("contact")]
+        public async Task<ActionResult<SiteConfigurationApiResponse<ContactInfoResponse>>> GetContactInfo()
+        {
+            try
+            {
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
+
+                var contactInfo = new ContactInfoResponse
+                {
+                    Email = config.Email,
+                    PhoneNumber = config.PhoneNumber,
+                    Address = config.Address,
+                    GitHubURL = config.GitHubURL,
+                    LinkedInURL = config.LinkedInURL,
+                    FacebookURL = config.FacebookURL
+                };
+
+                return Ok(new SiteConfigurationApiResponse<ContactInfoResponse>
+                {
+                    Success = true,
+                    Message = "Lấy thông tin Contact thành công",
+                    Data = contactInfo
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new SiteConfigurationApiResponse<ContactInfoResponse>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                });
+            }
+        }
 
     }
 }

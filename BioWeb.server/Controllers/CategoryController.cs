@@ -100,6 +100,23 @@ namespace BioWeb.Server.Controllers
         [AdminAuth]
         public async Task<ActionResult<CategoryApiResponse<CategoryResponse>>> CreateCategory([FromBody] CreateCategoryRequest request)
         {
+            // Kiểm tra ModelState validation
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .SelectMany(x => x.Value.Errors)
+                    .Select(x => x.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new CategoryApiResponse<CategoryResponse>
+                {
+                    Success = false,
+                    Message = "Dữ liệu không hợp lệ",
+                    Errors = errors
+                });
+            }
+
             try
             {
                 var category = new Category
@@ -116,7 +133,7 @@ namespace BioWeb.Server.Controllers
                     ArticleCount = 0 // Mới tạo thì chưa có bài viết nào
                 };
 
-                return Ok(new CategoryApiResponse<CategoryResponse>
+                return Created($"/api/Category/{createdCategory.CategoryID}", new CategoryApiResponse<CategoryResponse>
                 {
                     Success = true,
                     Message = "Tạo category thành công rồi",

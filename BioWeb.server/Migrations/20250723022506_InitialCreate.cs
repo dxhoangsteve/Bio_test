@@ -49,7 +49,8 @@ namespace BioWeb.server.Migrations
                     Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false)
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    ReadCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

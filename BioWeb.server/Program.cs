@@ -28,6 +28,8 @@ builder.Services.AddScoped<BioWeb.Server.Services.IAuthService, BioWeb.Server.Se
 builder.Services.AddScoped<BioWeb.Server.Services.IContactService, BioWeb.Server.Services.ContactService>();
 builder.Services.AddScoped<BioWeb.Server.Services.ISiteConfigurationService, BioWeb.Server.Services.SiteConfigurationService>();
 builder.Services.AddScoped<BioWeb.Server.Services.IProjectService, BioWeb.Server.Services.ProjectService>();
+builder.Services.AddScoped<BioWeb.Server.Services.IArticleService, BioWeb.Server.Services.ArticleService>();
+builder.Services.AddScoped<BioWeb.Server.Services.ICategoryService, BioWeb.Server.Services.CategoryService>();
 
 // --- PHẦN 3: XÂY DỰNG ỨNG DỤNG ---
 var app = builder.Build();

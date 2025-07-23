@@ -11,8 +11,9 @@ namespace BioWeb.Server.Services
 {
     public interface IProjectService
     {
-       Task<IEnumerable<Project>> GetAllProjectsAsync();
-        Task<Project?> GetAllProjectByIdAsync(int id);
+        Task<IEnumerable<Project>> GetAllProjectsAsync();
+        Task<IEnumerable<Project>> GetPublishedProjectsAsync();
+        Task<Project?> GetProjectByIdAsync(int id);
         Task<bool> UpdateProjectAsync(Project project);
         Task<bool> DeleteProjectAsync(int id);
         Task<bool> CreateProjectAsync(Project project);
@@ -27,10 +28,18 @@ namespace BioWeb.Server.Services
         }
         public async Task<IEnumerable<Project>> GetAllProjectsAsync()
         {
-            return await _context.Projects.ToListAsync();
+            return await _context.Projects.OrderBy(p => p.DisplayOrder).ToListAsync();
         }
 
-        public async Task<Project?> GetAllProjectByIdAsync(int id)
+        public async Task<IEnumerable<Project>> GetPublishedProjectsAsync()
+        {
+            return await _context.Projects
+                .Where(p => p.IsPublished)
+                .OrderBy(p => p.DisplayOrder)
+                .ToListAsync();
+        }
+
+        public async Task<Project?> GetProjectByIdAsync(int id)
         {
             return await _context.Projects.FirstOrDefaultAsync(p => p.ProjectID == id);
         }
@@ -79,11 +88,6 @@ namespace BioWeb.Server.Services
         private async Task<bool> ProjectExists(int id)
         {
             return await _context.Projects.AnyAsync(e => e.ProjectID == id);
-        }
-
-        public Task<Project?> GetAllProjectByIdAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 

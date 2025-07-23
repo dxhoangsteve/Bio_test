@@ -236,6 +236,23 @@ namespace BioWeb.Server.Controllers
         [AdminAuth]
         public async Task<ActionResult<ArticleApiResponse<ArticleResponse>>> CreateArticle([FromBody] CreateArticleRequest request)
         {
+            // Kiểm tra ModelState validation
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .SelectMany(x => x.Value.Errors)
+                    .Select(x => x.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ArticleApiResponse<ArticleResponse>
+                {
+                    Success = false,
+                    Message = "Dữ liệu không hợp lệ",
+                    Errors = errors
+                });
+            }
+
             try
             {
                 var article = new Article
@@ -264,7 +281,7 @@ namespace BioWeb.Server.Controllers
                     CategoryName = createdArticle.Category?.CategoryName ?? ""
                 };
 
-                return Ok(new ArticleApiResponse<ArticleResponse>
+                return Created($"/api/Article/{createdArticle.ArticleID}", new ArticleApiResponse<ArticleResponse>
                 {
                     Success = true,
                     Message = "Tạo bài viết thành công",

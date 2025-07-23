@@ -20,10 +20,50 @@ namespace BioWeb.Server.Controllers
         }
 
         /// <summary>
-        /// Lấy tất cả projects (chỉ admin)
+        /// Lấy tất cả projects published (public)
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<ProjectApiResponse<IEnumerable<ProjectResponse>>>> GetAllProjects()
+        public async Task<ActionResult<ProjectApiResponse<IEnumerable<ProjectResponse>>>> GetPublishedProjects()
+        {
+            try
+            {
+                var projects = await _projectService.GetPublishedProjectsAsync();
+                var projectResponses = projects.Select(p => new ProjectResponse
+                {
+                    ProjectID = p.ProjectID,
+                    ProjectName = p.ProjectName,
+                    Description = p.Description,
+                    GitHubURL = p.GitHubURL,
+                    ProjectURL = p.ProjectURL,
+                    ThumbnailURL = p.ThumbnailURL,
+                    Technologies = p.Technologies,
+                    DisplayOrder = p.DisplayOrder,
+                    IsPublished = p.IsPublished
+                });
+
+                return Ok(new ProjectApiResponse<IEnumerable<ProjectResponse>>
+                {
+                    Success = true,
+                    Message = "Lấy danh sách project thành công",
+                    Data = projectResponses
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ProjectApiResponse<IEnumerable<ProjectResponse>>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Lấy tất cả projects (admin)
+        /// </summary>
+        [HttpGet("admin")]
+        [AdminAuth]
+        public async Task<ActionResult<ProjectApiResponse<IEnumerable<ProjectResponse>>>> GetAllProjectsForAdmin()
         {
             try
             {
@@ -58,13 +98,110 @@ namespace BioWeb.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Lấy project theo ID (public - chỉ published)
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProjectApiResponse<ProjectResponse>>> GetProject(int id)
+        {
+            try
+            {
+                var project = await _projectService.GetProjectByIdAsync(id);
+                if (project == null || !project.IsPublished)
+                {
+                    return NotFound(new ProjectApiResponse<ProjectResponse>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy project hoặc project chưa được publish"
+                    });
+                }
+
+                var response = new ProjectResponse
+                {
+                    ProjectID = project.ProjectID,
+                    ProjectName = project.ProjectName,
+                    Description = project.Description,
+                    GitHubURL = project.GitHubURL,
+                    ProjectURL = project.ProjectURL,
+                    ThumbnailURL = project.ThumbnailURL,
+                    Technologies = project.Technologies,
+                    DisplayOrder = project.DisplayOrder,
+                    IsPublished = project.IsPublished
+                };
+
+                return Ok(new ProjectApiResponse<ProjectResponse>
+                {
+                    Success = true,
+                    Message = "Lấy thông tin project thành công",
+                    Data = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ProjectApiResponse<ProjectResponse>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Lấy project theo ID (admin - xem được hết)
+        /// </summary>
+        [HttpGet("admin/{id}")]
+        [AdminAuth]
+        public async Task<ActionResult<ProjectApiResponse<ProjectResponse>>> GetProjectForAdmin(int id)
+        {
+            try
+            {
+                var project = await _projectService.GetProjectByIdAsync(id);
+                if (project == null)
+                {
+                    return NotFound(new ProjectApiResponse<ProjectResponse>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy project"
+                    });
+                }
+
+                var response = new ProjectResponse
+                {
+                    ProjectID = project.ProjectID,
+                    ProjectName = project.ProjectName,
+                    Description = project.Description,
+                    GitHubURL = project.GitHubURL,
+                    ProjectURL = project.ProjectURL,
+                    ThumbnailURL = project.ThumbnailURL,
+                    Technologies = project.Technologies,
+                    DisplayOrder = project.DisplayOrder,
+                    IsPublished = project.IsPublished
+                };
+
+                return Ok(new ProjectApiResponse<ProjectResponse>
+                {
+                    Success = true,
+                    Message = "Lấy thông tin project thành công",
+                    Data = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ProjectApiResponse<ProjectResponse>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                });
+            }
+        }
+
         [HttpPut("{id}")]
         [AdminAuth]
         public async Task<ActionResult<SimpleResponse>> UpdateProjects(int id, [FromBody] UpdateProjectRequest request)
         {
             try
             {
-                var project = await _projectService.GetAllProjectByIdAsync(id);
+                var project = await _projectService.GetProjectByIdAsync(id);
                 if (project == null)
                 {
                     return NotFound(new SimpleResponse
@@ -73,13 +210,16 @@ namespace BioWeb.Server.Controllers
                         Message = "Không tìm thấy project"
                     });
                 }
-                
+
                 project.ProjectName = request.ProjectName;
                 project.Description = request.Description;
                 project.GitHubURL = request.GitHubURL;
                 project.ProjectURL = request.ProjectURL;
                 project.ThumbnailURL = request.ThumbnailURL;
                 project.Technologies = request.Technologies;
+                project.DisplayOrder = request.DisplayOrder;
+                project.IsPublished = request.IsPublished;
+
                 var result = await _projectService.UpdateProjectAsync(project);
                 if (result)
                 {
@@ -162,7 +302,7 @@ namespace BioWeb.Server.Controllers
                 var result = await _projectService.CreateProjectAsync(project);
                 if (result)
                 {
-                    return Ok(new SimpleResponse
+                    return Created($"/api/Project/{project.ProjectID}", new SimpleResponse
                     {
                         Success = true,
                         Message = "Tạo thành công"
@@ -186,93 +326,5 @@ namespace BioWeb.Server.Controllers
                 });
             }
         }
-        /// <summary>
-        /// Lấy project theo ID (chỉ admin)
-        /// </summary>
-        // [HttpGet("{id}")]    
-        // [AdminAuth]
-        // public async Task<ActionResult<ProjectApiResponse<ProjectResponse>>> GetProject(int id)
-        // {
-        //     try
-        //     {
-        //         var project = await _projectService.GetAllProjectByIdAsync(id);
-        //         if (project == null)
-        //         {
-        //             return NotFound(new ProjectApiResponse<ProjectResponse>
-        //             {
-        //                 Success = false,
-        //                 Message = "Không tìm thấy project"
-        //             });
-        //         }
-
-        //         var response = new ProjectResponse
-        //         {
-        //             ProjectID = project.ProjectID,
-        //             ProjectName = project.ProjectName,
-        //             Description = project.Description,
-        //             GitHubURL = project.GitHubURL,
-        //             ProjectURL = project.ProjectURL,
-        //             ThumbnailURL = project.ThumbnailURL,
-        //             Technologies = project.Technologies,
-        //             DisplayOrder = project.DisplayOrder,
-        //             IsPublished = project.IsPublished
-        //         };
-
-        //         return Ok(new ProjectApiResponse<ProjectResponse>
-        //         {
-        //             Success = true,
-        //             Message = "Lấy thông tin project thành công",
-        //             Data = response
-        //         });
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return BadRequest(new ProjectApiResponse<ProjectResponse>
-        //         {
-        //             Success = false,
-        //             Message = $"Lỗi: {ex.Message}"
-        //         });
-        //     }
-        // }
-
-        /// <summary>
-        /// Lấy tất cả projects (cho guest xem)
-        /// </summary>
-        // [HttpGet("public")]
-        // public async Task<ActionResult<ProjectApiResponse<IEnumerable<ProjectResponse>>>> GetPublicProjects()
-        // {
-        //     try
-        //     {
-        //         var projects = await _projectService.GetAllProjectsAsync();
-        //         var projectResponses = projects.Where(p => p.IsPublished).Select(p => new ProjectResponse
-        //         {       
-        //             ProjectID = p.ProjectID,
-        //             ProjectName = p.ProjectName,
-        //             Description = p.Description,
-        //             GitHubURL = p.GitHubURL,
-        //             ProjectURL = p.ProjectURL,
-        //             ThumbnailURL = p.ThumbnailURL,
-        //             Technologies = p.Technologies,
-        //             DisplayOrder = p.DisplayOrder,
-        //             IsPublished = p.IsPublished
-        //         });
-
-        //         return Ok(new ProjectApiResponse<IEnumerable<ProjectResponse>>
-        //         {
-        //             Success = true,
-        //             Message = "Lấy danh sách project thành công",
-        //             Data = projectResponses
-        //         });
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return BadRequest(new ProjectApiResponse<IEnumerable<ProjectResponse>>
-        //         {
-        //             Success = false,
-        //             Message = $"Lỗi: {ex.Message}"
-        //         });
-        //     }
-        // }
-
     }
 }

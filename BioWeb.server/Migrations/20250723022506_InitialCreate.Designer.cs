@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BioWeb.server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250722032602_AddReadCountToContact")]
-    partial class AddReadCountToContact
+    [Migration("20250723022506_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
