@@ -15,17 +15,9 @@ namespace BioWeb.Server.Models
         [Required]
         public string Content { get; set; } = null!;
 
-        [StringLength(255)]
-        public string ThumbnailURL { get; set; } = "";
-
         public bool IsPublished { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        // Khóa ngoại tới AdminUser
-        public int AuthorID { get; set; }
-        [ForeignKey("AuthorID")]
-        public virtual AdminUser Author { get; set; } = null!;
 
         // Khóa ngoại tới Category
         public int CategoryID { get; set; }

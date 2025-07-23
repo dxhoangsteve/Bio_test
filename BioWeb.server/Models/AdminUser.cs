@@ -17,8 +17,5 @@ namespace BioWeb.Server.Models
         public string PasswordHash { get; set; } = null!;
 
         public DateTime? LastLogin { get; set; }
-
-        // Một admin có thể viết nhiều bài viết
-        public ICollection<Article> Articles { get; set; } = new List<Article>();
     }
 }

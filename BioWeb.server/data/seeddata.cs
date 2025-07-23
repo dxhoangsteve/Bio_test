@@ -23,6 +23,8 @@ namespace BioWeb.Server.Data
             await SeedCategories(context);
             await SeedProjects(context);
             await SeedArticles(context);
+            await SeedAboutMe(context);
+            await SeedContact(context);
 
             Console.WriteLine("Đã tạo toàn bộ bảng. Tiếp theo drop data ban đầu");
         }
@@ -136,7 +138,6 @@ namespace BioWeb.Server.Data
                 Console.WriteLine("Đang tạo bài viết");
                 return;
             }
-            var adminUserId = context.AdminUsers.First().UserID;
             var techCategoryId = context.Categories.First(c => c.CategoryName == "Lập Trình").CategoryID;
 
             var articles = new List<Article>
@@ -145,20 +146,16 @@ namespace BioWeb.Server.Data
                 {
                     Title = "Chào mừng đến với Bio Website",
                     Content = "Đây là bài viết đầu tiên trên website cá nhân của tôi. Website được xây dựng bằng ASP.NET Core và Blazor.",
-                    ThumbnailURL = "",
                     IsPublished = true,
                     CreatedAt = DateTime.UtcNow,
-                    AuthorID = adminUserId,
                     CategoryID = techCategoryId
                 },
                 new Article
                 {
                     Title = "Hành trình học lập trình",
                     Content = "Chia sẻ về hành trình học lập trình từ mobile development đến web development và AI.",
-                    ThumbnailURL = "",
                     IsPublished = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    AuthorID = adminUserId,
                     CategoryID = techCategoryId
                 }
             };
@@ -168,6 +165,51 @@ namespace BioWeb.Server.Data
             Console.WriteLine("pass");
         }
 
+        private static async Task SeedAboutMe(ApplicationDbContext context)
+        {
+            if (await context.AboutMes.AnyAsync())
+            {
+                Console.WriteLine("Đã có thông tin About Me");
+                return;
+            }
+
+            var aboutMe = new AboutMe
+            {
+                FullName = "Đinh Xuân Hoàng",
+                JobTitle = "Full-stack Developer",
+                AvatarURL = "/uploads/avatars/default-avatar.jpg",
+                BioSummary = "Tôi là Đinh Xuân Hoàng, lập trình viên mobile và đang trên con đường học tập web để trở thành fullstack developer sau đó là AI. Tôi luôn cố gắng học hỏi công nghệ sử dụng mới để biết thêm nhiều kiến thức. Cảm ơn bạn đã xem bio này!!",
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            context.AboutMes.Add(aboutMe);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Đã tạo thông tin About Me");
+        }
+
+        private static async Task SeedContact(ApplicationDbContext context)
+        {
+            if (await context.Contacts.AnyAsync())
+            {
+                Console.WriteLine("Đã có thông tin Contact");
+                return;
+            }
+
+            var contact = new Contact
+            {
+                Email = "sterbe2k4@gmail.com",
+                PhoneNumber = "+84 329474859",
+                Address = "Quận Tân Bình, Thành phố Hồ Chí Minh",
+                GitHubURL = "https://github.com/dxhoangsteve",
+                LinkedInURL = "",
+                FacebookURL = "https://www.facebook.com/Wikileakss",
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            context.Contacts.Add(contact);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Đã tạo thông tin Contact");
+        }
 
     }
 }

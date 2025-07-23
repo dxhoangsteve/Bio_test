@@ -33,11 +33,8 @@ namespace BioWeb.Server.Controllers
                     ArticleID = a.ArticleID,
                     Title = a.Title,
                     Content = a.Content,
-                    ThumbnailURL = a.ThumbnailURL,
                     IsPublished = a.IsPublished,
                     CreatedAt = a.CreatedAt,
-                    AuthorID = a.AuthorID,
-                    AuthorName = a.Author.Username, // Lấy tên tác giả
                     CategoryID = a.CategoryID,
                     CategoryName = a.Category.CategoryName // Lấy tên category
                 });
@@ -73,9 +70,7 @@ namespace BioWeb.Server.Controllers
                     ArticleID = a.ArticleID,
                     Title = a.Title,
                     Content = a.Content,
-                    ThumbnailURL = a.ThumbnailURL,
                     CreatedAt = a.CreatedAt,
-                    AuthorName = a.Author.Username,
                     CategoryName = a.Category.CategoryName
                 });
 
@@ -96,42 +91,7 @@ namespace BioWeb.Server.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy bài viết theo category - guest xem được
-        /// </summary>
-        [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<ArticleApiResponse<IEnumerable<PublicArticleResponse>>>> GetArticlesByCategory(int categoryId)
-        {
-            try
-            {
-                var articles = await _articleService.GetArticlesByCategoryAsync(categoryId);
-                var articleResponses = articles.Select(a => new PublicArticleResponse
-                {
-                    ArticleID = a.ArticleID,
-                    Title = a.Title,
-                    Content = a.Content,
-                    ThumbnailURL = a.ThumbnailURL,
-                    CreatedAt = a.CreatedAt,
-                    AuthorName = a.Author.Username,
-                    CategoryName = a.Category.CategoryName
-                });
 
-                return Ok(new ArticleApiResponse<IEnumerable<PublicArticleResponse>>
-                {
-                    Success = true,
-                    Message = "Lấy bài viết theo category thành công",
-                    Data = articleResponses
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ArticleApiResponse<IEnumerable<PublicArticleResponse>>
-                {
-                    Success = false,
-                    Message = $"Có lỗi xảy ra: {ex.Message}"
-                });
-            }
-        }
 
         /// <summary>
         /// Lấy bài viết theo ID - guest chỉ xem được bài đã publish
@@ -156,9 +116,7 @@ namespace BioWeb.Server.Controllers
                     ArticleID = article.ArticleID,
                     Title = article.Title,
                     Content = article.Content,
-                    ThumbnailURL = article.ThumbnailURL,
                     CreatedAt = article.CreatedAt,
-                    AuthorName = article.Author.Username,
                     CategoryName = article.Category.CategoryName
                 };
 
@@ -203,11 +161,8 @@ namespace BioWeb.Server.Controllers
                     ArticleID = article.ArticleID,
                     Title = article.Title,
                     Content = article.Content,
-                    ThumbnailURL = article.ThumbnailURL,
                     IsPublished = article.IsPublished,
                     CreatedAt = article.CreatedAt,
-                    AuthorID = article.AuthorID,
-                    AuthorName = article.Author.Username,
                     CategoryID = article.CategoryID,
                     CategoryName = article.Category.CategoryName
                 };
@@ -259,24 +214,19 @@ namespace BioWeb.Server.Controllers
                 {
                     Title = request.Title,
                     Content = request.Content,
-                    ThumbnailURL = request.ThumbnailURL,
                     IsPublished = request.IsPublished,
-                    AuthorID = request.AuthorID,
                     CategoryID = request.CategoryID
                 };
 
                 var createdArticle = await _articleService.CreateArticleAsync(article);
-                
+
                 var response = new ArticleResponse
                 {
                     ArticleID = createdArticle.ArticleID,
                     Title = createdArticle.Title,
                     Content = createdArticle.Content,
-                    ThumbnailURL = createdArticle.ThumbnailURL,
                     IsPublished = createdArticle.IsPublished,
                     CreatedAt = createdArticle.CreatedAt,
-                    AuthorID = createdArticle.AuthorID,
-                    AuthorName = createdArticle.Author?.Username ?? "",
                     CategoryID = createdArticle.CategoryID,
                     CategoryName = createdArticle.Category?.CategoryName ?? ""
                 };
@@ -320,9 +270,7 @@ namespace BioWeb.Server.Controllers
                 // Cập nhật thông tin
                 article.Title = request.Title;
                 article.Content = request.Content;
-                article.ThumbnailURL = request.ThumbnailURL;
                 article.IsPublished = request.IsPublished;
-                article.AuthorID = request.AuthorID;
                 article.CategoryID = request.CategoryID;
 
                 var result = await _articleService.UpdateArticleAsync(article);

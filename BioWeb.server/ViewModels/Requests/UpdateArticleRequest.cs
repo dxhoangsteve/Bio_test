@@ -14,15 +14,9 @@ namespace BioWeb.Server.ViewModels.Requests
         [Required(ErrorMessage = "Nội dung bài viết phải có chứ")]
         public string Content { get; set; } = null!;
 
-        [StringLength(255, ErrorMessage = "URL thumbnail dài quá")]
-        public string ThumbnailURL { get; set; } = "";
-
         public bool IsPublished { get; set; }
 
         [Required(ErrorMessage = "Category phải chọn")]
         public int CategoryID { get; set; }
-
-        [Required(ErrorMessage = "Author phải có")]
-        public int AuthorID { get; set; }
     }
 }

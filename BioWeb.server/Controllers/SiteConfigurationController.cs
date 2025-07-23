@@ -200,13 +200,13 @@ namespace BioWeb.Server.Controllers
         /// Lấy thông tin Contact - liên hệ (public)
         /// </summary>
         [HttpGet("contact")]
-        public async Task<ActionResult<SiteConfigurationApiResponse<ContactInfoResponse>>> GetContactInfo()
+        public async Task<ActionResult<SiteConfigurationApiResponse<ContactResponse>>> GetContactInfo()
         {
             try
             {
                 var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
 
-                var contactInfo = new ContactInfoResponse
+                var contactInfo = new ContactResponse
                 {
                     Email = config.Email,
                     PhoneNumber = config.PhoneNumber,
@@ -216,7 +216,7 @@ namespace BioWeb.Server.Controllers
                     FacebookURL = config.FacebookURL
                 };
 
-                return Ok(new SiteConfigurationApiResponse<ContactInfoResponse>
+                return Ok(new SiteConfigurationApiResponse<ContactResponse>
                 {
                     Success = true,
                     Message = "Lấy thông tin Contact thành công",
@@ -225,7 +225,7 @@ namespace BioWeb.Server.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new SiteConfigurationApiResponse<ContactInfoResponse>
+                return BadRequest(new SiteConfigurationApiResponse<ContactResponse>
                 {
                     Success = false,
                     Message = $"Lỗi: {ex.Message}"

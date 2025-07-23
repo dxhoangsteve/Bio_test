@@ -14,15 +14,9 @@ namespace BioWeb.Server.ViewModels.Requests
         [Required(ErrorMessage = "Nội dung bài viết không thể để trống")]
         public string Content { get; set; } = null!;
 
-        [StringLength(255, ErrorMessage = "URL thumbnail dài quá, 255 ký tự thôi")]
-        public string ThumbnailURL { get; set; } = "";
-
         public bool IsPublished { get; set; } = false; // Mặc định chưa publish
 
         [Required(ErrorMessage = "Phải chọn category cho bài viết")]
         public int CategoryID { get; set; }
-
-        [Required(ErrorMessage = "Phải có tác giả chứ")]
-        public int AuthorID { get; set; }
     }
 }
