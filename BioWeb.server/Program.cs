@@ -25,7 +25,6 @@ builder.Services.AddOpenApi();
 
 // 2.6. Đăng ký services
 builder.Services.AddScoped<BioWeb.Server.Services.IAuthService, BioWeb.Server.Services.AuthService>();
-builder.Services.AddScoped<BioWeb.Server.Services.IContactService, BioWeb.Server.Services.ContactService>();
 builder.Services.AddScoped<BioWeb.Server.Services.ISiteConfigurationService, BioWeb.Server.Services.SiteConfigurationService>();
 builder.Services.AddScoped<BioWeb.Server.Services.IProjectService, BioWeb.Server.Services.ProjectService>();
 builder.Services.AddScoped<BioWeb.Server.Services.IArticleService, BioWeb.Server.Services.ArticleService>();

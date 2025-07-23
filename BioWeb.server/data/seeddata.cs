@@ -23,7 +23,6 @@ namespace BioWeb.Server.Data
             await SeedCategories(context);
             await SeedProjects(context);
             await SeedArticles(context);
-            await SeedContacts(context);
 
             Console.WriteLine("Đã tạo toàn bộ bảng. Tiếp theo drop data ban đầu");
         }
@@ -169,28 +168,6 @@ namespace BioWeb.Server.Data
             Console.WriteLine("pass");
         }
 
-        private static async Task SeedContacts(ApplicationDbContext context)
-        {
-            if (await context.Contacts.AnyAsync())
-            {
-                Console.WriteLine("Đang tạo liên hệ");
-                return;
-            }
-            var contacts = new List<Contact>
-            {
-                new Contact
-                {
-                    FullName = "Đinh Xuân Hoàng",
-                    Email = "sterbe2k4@gmail.com",
-                    Message = "Cảm ơn đã xem bio của tôi!",
-                    SentDate = DateTime.UtcNow.AddDays(-2),
-                    IsRead = false
-                }
-            };
 
-            context.Contacts.AddRange(contacts);
-            await context.SaveChangesAsync();
-            Console.WriteLine("✅ Tạo contacts xong");
-        }
     }
 }

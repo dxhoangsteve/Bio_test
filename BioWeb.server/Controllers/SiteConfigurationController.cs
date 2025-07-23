@@ -162,45 +162,6 @@ namespace BioWeb.Server.Controllers
         }
 
         /// <summary>
-        /// Lấy thông tin public (cho frontend hiển thị)
-        /// </summary>
-        [HttpGet("public")]
-        public async Task<ActionResult<SiteConfigurationApiResponse<PublicSiteConfigurationResponse>>> GetPublicInfo()
-        {
-            try
-            {
-                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
-
-                var publicInfo = new PublicSiteConfigurationResponse
-                {
-                    FullName = config.FullName,
-                    JobTitle = config.JobTitle,
-                    AvatarURL = config.AvatarURL,
-                    BioSummary = config.BioSummary,
-                    Address = config.Address,
-                    FacebookURL = config.FacebookURL,
-                    GitHubURL = config.GitHubURL,
-                    LinkedInURL = config.LinkedInURL
-                };
-
-                return Ok(new SiteConfigurationApiResponse<PublicSiteConfigurationResponse>
-                {
-                    Success = true,
-                    Message = "Lấy thông tin public thành công",
-                    Data = publicInfo
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new SiteConfigurationApiResponse<PublicSiteConfigurationResponse>
-                {
-                    Success = false,
-                    Message = $"Lỗi: {ex.Message}"
-                });
-            }
-        }
-
-        /// <summary>
         /// Lấy thông tin About Me - Bio summary (public)
         /// </summary>
         [HttpGet("about-me")]

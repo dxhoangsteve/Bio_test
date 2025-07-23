@@ -38,7 +38,6 @@ namespace BioWeb.Server.Controllers
 
                 // Xóa theo thứ tự để tránh lỗi foreign key
                 context.Articles.RemoveRange(context.Articles);
-                context.Contacts.RemoveRange(context.Contacts);
                 context.Projects.RemoveRange(context.Projects);
                 context.Categories.RemoveRange(context.Categories);
                 context.SiteConfigurations.RemoveRange(context.SiteConfigurations);
@@ -88,7 +87,6 @@ namespace BioWeb.Server.Controllers
                 Categories = await context.Categories.CountAsync(),
                 Projects = await context.Projects.CountAsync(),
                 Articles = await context.Articles.CountAsync(),
-                Contacts = await context.Contacts.CountAsync(),
                 Environment = _environment.EnvironmentName,
                 Timestamp = DateTime.UtcNow
             };
