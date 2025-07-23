@@ -13,4 +13,10 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https:/
 // Register services
 builder.Services.AddScoped<IApiService, ApiService>();
 
+// Configure HttpClient base address
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("https://localhost:7254/")
+});
+
 await builder.Build().RunAsync();

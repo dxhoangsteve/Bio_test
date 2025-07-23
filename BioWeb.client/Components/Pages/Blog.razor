@@ -1,0 +1,486 @@
+@page "/blog"
+@using BioWeb.client.Models
+@using BioWeb.client.Services
+@inject IApiService ApiService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Blog</PageTitle>
+
+@if (showArticleDetail && selectedArticle != null)
+{
+    <!-- Article Detail View -->
+    <div class="article-detail-container">
+        <div class="article-header mb-4">
+            <button class="btn btn-outline-primary mb-3" @onclick="BackToList">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </button>
+            <h1 class="article-title">@selectedArticle.Title</h1>
+            <div class="article-meta">
+                <span class="article-category">
+                    <i class="fas fa-tag me-1"></i>@selectedArticle.CategoryName
+                </span>
+                <span class="article-date">
+                    <i class="fas fa-calendar me-1"></i>@selectedArticle.CreatedAt.ToString("dd/MM/yyyy")
+                </span>
+            </div>
+        </div>
+
+        <div class="article-content">
+            @if (!string.IsNullOrEmpty(selectedArticle.ThumbnailURL))
+            {
+                <img src="@selectedArticle.ThumbnailURL" alt="@selectedArticle.Title" class="article-thumbnail mb-4" />
+            }
+
+            <div class="article-body">
+                @((MarkupString)selectedArticle.Content)
+            </div>
+        </div>
+
+        <!-- Share Buttons -->
+        <div class="share-section mt-5">
+            <h5 class="share-title">Chia sẻ bài viết</h5>
+            <div class="share-buttons">
+                <button class="btn btn-facebook" @onclick="() => ShareOnFacebook(selectedArticle)">
+                    <i class="fab fa-facebook-f me-2"></i>Facebook
+                </button>
+                <button class="btn btn-instagram" @onclick="() => ShareOnInstagram(selectedArticle)">
+                    <i class="fab fa-instagram me-2"></i>Instagram
+                </button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Blog List View -->
+    <div class="blog-container">
+        <div class="blog-header mb-4">
+            <h1 class="page-title fs-2">Blog của tôi</h1>
+            <p class="page-description">Chia sẻ kiến thức và kinh nghiệm lập trình</p>
+        </div>
+
+
+
+        <!-- Articles Grid -->
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="mt-2">Đang tải bài viết...</p>
+            </div>
+        }
+        else if (!articles.Any())
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h4>Chưa có bài viết nào</h4>
+                <p class="text-muted">Hãy quay lại sau để đọc những bài viết mới nhất!</p>
+            </div>
+        }
+        else
+        {
+            <div class="articles-grid">
+                @foreach (var article in articles)
+                {
+                    <div class="article-card" @onclick="() => ViewArticle(article)">
+                        @if (!string.IsNullOrEmpty(article.ThumbnailURL))
+                        {
+                            <div class="article-card-image">
+                                <img src="@article.ThumbnailURL" alt="@article.Title" />
+                            </div>
+                        }
+                        <div class="article-card-content">
+                            <div class="article-card-meta">
+                                <span class="category-tag">@article.CategoryName</span>
+                                <span class="date-tag">@article.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <h3 class="article-card-title">@article.Title</h3>
+                            <div class="article-card-excerpt">
+                                @GetExcerpt(article.Content)
+                            </div>
+                            <div class="article-card-footer">
+                                <span class="read-more">
+                                    Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ArticleDto> articles = new();
+    private bool isLoading = true;
+    private bool showArticleDetail = false;
+
+    private ArticleDto? selectedArticle = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Load articles
+            articles = await ApiService.GetPublishedArticlesAsync();
+
+            // Sort articles by date
+            articles = articles.OrderByDescending(a => a.CreatedAt).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading blog data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+
+
+    private async Task ViewArticle(ArticleDto article)
+    {
+        selectedArticle = article;
+        showArticleDetail = true;
+        StateHasChanged();
+
+        // Scroll to top
+        await JSRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
+    }
+
+    private void BackToList()
+    {
+        showArticleDetail = false;
+        selectedArticle = null;
+        StateHasChanged();
+    }
+
+    private string GetExcerpt(string content)
+    {
+        if (string.IsNullOrEmpty(content))
+            return "";
+
+        // Remove HTML tags and get first 150 characters
+        var plainText = System.Text.RegularExpressions.Regex.Replace(content, "<.*?>", "");
+        return plainText.Length > 150 ? plainText.Substring(0, 150) + "..." : plainText;
+    }
+
+    private async Task ShareOnFacebook(ArticleDto article)
+    {
+        try
+        {
+            var baseUrl = await JSRuntime.InvokeAsync<string>("eval", "window.location.origin");
+            var articleUrl = $"{baseUrl}/blog?article={article.ArticleID}";
+            var shareUrl =
+            $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(articleUrl)}&quote={Uri.EscapeDataString(article.Title)}";
+            await JSRuntime.InvokeVoidAsync("window.open", shareUrl, "_blank");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Share error: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Không thể chia sẻ lúc này. Vui lòng thử lại sau.");
+        }
+    }
+
+    private async Task ShareOnInstagram(ArticleDto article)
+    {
+        try
+        {
+            var baseUrl = await JSRuntime.InvokeAsync<string>("eval", "window.location.origin");
+            var articleUrl = $"{baseUrl}/blog?article={article.ArticleID}";
+            var shareText = $"📖 {article.Title}\n\n{GetExcerpt(article.Content)}\n\n🔗 {articleUrl}";
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", shareText);
+            await JSRuntime.InvokeVoidAsync("alert", "Nội dung đã được sao chép! Bạn có thể dán vào Instagram Story hoặc Post.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Share error: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Không thể sao chép link. Vui lòng thử lại sau.");
+        }
+    }
+}
+
+<style>
+    /* Blog Container */
+    .blog-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: white;
+    }
+
+    .blog-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-title {
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .page-description {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
+
+
+    /* Articles Grid */
+    .articles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .article-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        height: fit-content;
+    }
+
+    .article-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .article-card-image {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .article-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .article-card:hover .article-card-image img {
+        transform: scale(1.05);
+    }
+
+    .article-card-content {
+        padding: 20px;
+    }
+
+    .article-card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+    }
+
+    .category-tag {
+        background: rgba(74, 144, 226, 0.3);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-weight: 500;
+    }
+
+    .date-tag {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .article-card-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        line-height: 1.4;
+        color: white;
+    }
+
+    .article-card-excerpt {
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.6;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+    }
+
+    .article-card-footer {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .read-more {
+        color: #4a90e2;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+
+    .article-card:hover .read-more {
+        color: #357abd;
+    }
+
+    /* Article Detail */
+    .article-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: white;
+        min-height: 100vh;
+    }
+
+    .article-header {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+
+    .article-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+
+    .article-meta {
+        display: flex;
+        gap: 20px;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .article-meta span {
+        display: flex;
+        align-items: center;
+    }
+
+    .article-category {
+        background: #f8f9fa;
+        padding: 5px 12px;
+        border-radius: 15px;
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .article-content {
+        margin-top: 30px;
+    }
+
+    .article-thumbnail {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .article-body {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #333;
+    }
+
+    .article-body h1,
+    .article-body h2,
+    .article-body h3 {
+        margin-top: 30px;
+        margin-bottom: 15px;
+        color: #2c3e50;
+    }
+
+    .article-body p {
+        margin-bottom: 20px;
+    }
+
+    .article-body img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    /* Share Section */
+    .share-section {
+        border-top: 1px solid #eee;
+        padding-top: 30px;
+    }
+
+    .share-title {
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .share-buttons {
+        display: flex;
+        gap: 15px;
+    }
+
+    .btn-facebook {
+        background: #1877f2;
+        border-color: #1877f2;
+        color: white;
+    }
+
+    .btn-facebook:hover {
+        background: #166fe5;
+        border-color: #166fe5;
+        color: white;
+    }
+
+    .btn-instagram {
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        border: none;
+        color: white;
+    }
+
+    .btn-instagram:hover {
+        opacity: 0.9;
+        color: white;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .blog-container {
+            padding: 15px;
+        }
+
+        .articles-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .article-card-content {
+            padding: 15px;
+        }
+
+        .article-title {
+            font-size: 2rem;
+        }
+
+
+
+        .share-buttons {
+            flex-direction: column;
+        }
+    }
+</style>

@@ -5,22 +5,32 @@
         <div class="row justify-content-center">
             <div class="col-12 col-lg-10 col-xl-8">
                 <div class="glass-container my-4">
-                    <!-- Navbar -->
                     <nav class="glass-navbar">
-                        <a href="/about-me" class="nav-item @(IsActive("/about-me") ? "active" : "")">
-                            About Me
-                        </a>
-                        <a href="/projects" class="nav-item @(IsActive("/projects") ? "active" : "")">
-                            My Project
-                        </a>
-                        <a href="/blog" class="nav-item @(IsActive("/blog") ? "active" : "")">
-                            Blog
-                        </a>
-                        <a href="/contact" class="nav-item @(IsActive("/contact") ? "active" : "")">
-                            Contact Me
-                        </a>
-                    </nav>
+                        <!-- Mobile menu toggle button -->
+                        <button class="mobile-menu-toggle d-lg-none" @onclick="ToggleMobileMenu">
+                            <i class="fas fa-bars"></i>
+                        </button>
 
+                        <!-- Navigation items -->
+                        <div class="nav-items @(isMobileMenuOpen ? "mobile-open" : "")">
+                            <a href="/about-me" class="nav-item @(IsActive("/about-me") ? "active" : "")"
+                                @onclick="CloseMobileMenu">
+                                About Me
+                            </a>
+                            <a href="/projects" class="nav-item @(IsActive("/projects") ? "active" : "")"
+                                @onclick="CloseMobileMenu">
+                                My Project
+                            </a>
+                            <a href="/blog" class="nav-item @(IsActive("/blog") ? "active" : "")"
+                                @onclick="CloseMobileMenu">
+                                Blog
+                            </a>
+                            <a href="/contact" class="nav-item @(IsActive("/contact") ? "active" : "")"
+                                @onclick="CloseMobileMenu">
+                                Contact Me
+                            </a>
+                        </div>
+                    </nav>
                     <!-- Content Area -->
                     <div class="glass-content">
                         @Body
@@ -38,5 +48,17 @@
     {
         var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
         return currentPath.StartsWith(href.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool isMobileMenuOpen = false;
+
+    private void ToggleMobileMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+    }
+
+    private void CloseMobileMenu()
+    {
+        isMobileMenuOpen = false;
     }
 }

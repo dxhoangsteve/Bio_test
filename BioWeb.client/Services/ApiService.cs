@@ -16,6 +16,12 @@ namespace BioWeb.client.Services
         Task<bool> CheckServerHealthAsync();
         event Action<bool, string> ServerStatusChanged;
         Task<ContactInfoDto> GetContactInfoDto();
+
+        // Blog methods
+        Task<List<ArticleDto>> GetPublishedArticlesAsync();
+        Task<List<ArticleDto>> GetArticlesByCategoryAsync(int categoryId);
+        Task<ArticleDto?> GetArticleByIdAsync(int id);
+        Task<List<CategoryDto>> GetCategoriesAsync();
     }
 
     public class ApiService : IApiService
@@ -156,7 +162,7 @@ namespace BioWeb.client.Services
         /// <summary>
         /// Lấy thông tin contact của site và tăng view count
         /// </summary>
-        public async Task<ContactInfoDto?> GetContactInfoDto()
+        public async Task<ContactInfoDto> GetContactInfoDto()
         {
             try
             {
@@ -168,29 +174,157 @@ namespace BioWeb.client.Services
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse<ContactInfoDto>>(json, _jsonOptions);
 
                     ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse?.Data ?? new ContactInfoDto();
+                }
+
+                ServerStatusChanged?.Invoke(false, $"API trả về: {response.StatusCode}");
+                return new ContactInfoDto();
+            }
+            catch (HttpRequestException ex)
+            {
+                ServerStatusChanged?.Invoke(false, "Không thể kết nối đến server");
+                Console.WriteLine($"Error fetching contact info: {ex.Message}");
+                return new ContactInfoDto();
+            }
+            catch (TaskCanceledException)
+            {
+                ServerStatusChanged?.Invoke(false, "Kết nối server bị timeout");
+                Console.WriteLine("Contact info request timeout");
+                return new ContactInfoDto();
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"Lỗi không xác định: {ex.Message}");
+                Console.WriteLine($"Error fetching contact info: {ex.Message}");
+                return new ContactInfoDto();
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách bài viết đã publish
+        /// </summary>
+        public async Task<List<ArticleDto>> GetPublishedArticlesAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("/api/Article");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ArticleDto>>>(json, _jsonOptions);
+
+                    ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse?.Data ?? [];
+                }
+
+                ServerStatusChanged?.Invoke(false, $"API trả về: {response.StatusCode}");
+                return [];
+            }
+            catch (HttpRequestException ex)
+            {
+                ServerStatusChanged?.Invoke(false, "Không thể kết nối đến server");
+                Console.WriteLine($"Error fetching articles: {ex.Message}");
+                return [];
+            }
+            catch (TaskCanceledException)
+            {
+                ServerStatusChanged?.Invoke(false, "Kết nối server bị timeout");
+                Console.WriteLine("Articles request timeout");
+                return [];
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"Lỗi không xác định: {ex.Message}");
+                Console.WriteLine($"Error fetching articles: {ex.Message}");
+                return [];
+            }
+        }
+
+        /// <summary>
+        /// Lấy bài viết theo category
+        /// </summary>
+        public async Task<List<ArticleDto>> GetArticlesByCategoryAsync(int categoryId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/Article/category/{categoryId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ArticleDto>>>(json, _jsonOptions);
+
+                    ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse?.Data ?? [];
+                }
+
+                ServerStatusChanged?.Invoke(false, $"API trả về: {response.StatusCode}");
+                return [];
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"Lỗi không xác định: {ex.Message}");
+                Console.WriteLine($"Error fetching articles by category: {ex.Message}");
+                return [];
+            }
+        }
+
+        /// <summary>
+        /// Lấy chi tiết bài viết theo ID
+        /// </summary>
+        public async Task<ArticleDto?> GetArticleByIdAsync(int id)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/Article/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<ArticleDto>>(json, _jsonOptions);
+
+                    ServerStatusChanged?.Invoke(true, "");
                     return apiResponse?.Data;
                 }
 
                 ServerStatusChanged?.Invoke(false, $"API trả về: {response.StatusCode}");
                 return null;
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                ServerStatusChanged?.Invoke(false, "Không thể kết nối đến server");
-                Console.WriteLine($"Error fetching about me: {ex.Message}");
+                ServerStatusChanged?.Invoke(false, $"Lỗi không xác định: {ex.Message}");
+                Console.WriteLine($"Error fetching article: {ex.Message}");
                 return null;
             }
-            catch (TaskCanceledException)
+        }
+
+        /// <summary>
+        /// Lấy danh sách categories
+        /// </summary>
+        public async Task<List<CategoryDto>> GetCategoriesAsync()
+        {
+            try
             {
-                ServerStatusChanged?.Invoke(false, "Kết nối server bị timeout");
-                Console.WriteLine("About me request timeout");
-                return null;
+                var response = await _httpClient.GetAsync("/api/Category");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<CategoryDto>>>(json, _jsonOptions);
+
+                    ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse?.Data ?? [];
+                }
+
+                ServerStatusChanged?.Invoke(false, $"API trả về: {response.StatusCode}");
+                return [];
             }
             catch (Exception ex)
             {
                 ServerStatusChanged?.Invoke(false, $"Lỗi không xác định: {ex.Message}");
-                Console.WriteLine($"Error fetching about me: {ex.Message}");
-                return null;
+                Console.WriteLine($"Error fetching categories: {ex.Message}");
+                return [];
             }
         }
 
