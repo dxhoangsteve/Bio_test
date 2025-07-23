@@ -1,0 +1,193 @@
+@namespace BioWeb.client.Components
+
+<div class="technology-container mb-4">
+    <div class="row g-3 justify-content-center">
+        @foreach (var tech in Technologies)
+        {
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                <div class="tech-item text-center">
+                    <div class="tech-icon d-flex align-items-center justify-content-center mb-2">
+                        <i class="@tech.Icon"></i>
+                    </div>
+                    <div class="tech-label">@tech.Name</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string TechnologiesString { get; set; } = "";
+
+    private List<TechItem> Technologies = new();
+
+    // Predefined technology categories - chỉ để xác định icon
+    private static readonly Dictionary<string, TechCategory> PredefinedTechnologies = new()
+    {
+        // Backend Technologies (API)
+        { "ASP.NET Core", TechCategory.Backend },
+        { ".NET Core", TechCategory.Backend },
+        { "C#", TechCategory.Backend },
+        { "Node.js", TechCategory.Backend },
+        { "Express.js", TechCategory.Backend },
+        { "Python", TechCategory.Backend },
+        { "Django", TechCategory.Backend },
+        { "Flask", TechCategory.Backend },
+        { "Java", TechCategory.Backend },
+        { "Spring Boot", TechCategory.Backend },
+        { "PHP", TechCategory.Backend },
+        { "Laravel", TechCategory.Backend },
+        { "Ruby", TechCategory.Backend },
+        { "Ruby on Rails", TechCategory.Backend },
+        { "Go", TechCategory.Backend },
+        { "Rust", TechCategory.Backend },
+        { "FastAPI", TechCategory.Backend },
+        { "NestJS", TechCategory.Backend },
+
+        // Frontend Technologies
+        { "React", TechCategory.Frontend },
+        { "Vue.js", TechCategory.Frontend },
+        { "Angular", TechCategory.Frontend },
+        { "Blazor", TechCategory.Frontend },
+        { "JavaScript", TechCategory.Frontend },
+        { "TypeScript", TechCategory.Frontend },
+        { "HTML5", TechCategory.Frontend },
+        { "CSS3", TechCategory.Frontend },
+        { "Bootstrap", TechCategory.Frontend },
+        { "Tailwind CSS", TechCategory.Frontend },
+        { "Sass", TechCategory.Frontend },
+        { "jQuery", TechCategory.Frontend },
+        { "Next.js", TechCategory.Frontend },
+        { "Nuxt.js", TechCategory.Frontend },
+        { "Svelte", TechCategory.Frontend },
+
+        // Mobile Technologies
+        { "Flutter", TechCategory.Mobile },
+        { "React Native", TechCategory.Mobile },
+        { "Xamarin", TechCategory.Mobile },
+        { "Swift", TechCategory.Mobile },
+        { "Kotlin", TechCategory.Mobile },
+        { "Java Android", TechCategory.Mobile },
+        { "Ionic", TechCategory.Mobile },
+        { "Cordova", TechCategory.Mobile },
+
+        // Database Technologies
+        { "SQL Server", TechCategory.Database },
+        { "MySQL", TechCategory.Database },
+        { "PostgreSQL", TechCategory.Database },
+        { "MongoDB", TechCategory.Database },
+        { "Redis", TechCategory.Database },
+        { "SQLite", TechCategory.Database },
+        { "Oracle", TechCategory.Database },
+        { "Firebase", TechCategory.Database },
+        { "Supabase", TechCategory.Database },
+        { "DynamoDB", TechCategory.Database },
+        { "Cassandra", TechCategory.Database },
+        { "Elasticsearch", TechCategory.Database }
+    };
+
+    protected override void OnParametersSet()
+    {
+        ParseTechnologies();
+    }
+
+    private void ParseTechnologies()
+    {
+        Technologies.Clear();
+
+        if (string.IsNullOrEmpty(TechnologiesString))
+        {
+            // Default technologies nếu không có data
+            Technologies = new List<TechItem>
+            {
+                new TechItem { Name = "ASP.NET Core", Icon = GetCategoryIcon(TechCategory.Backend) },
+                new TechItem { Name = "Blazor", Icon = GetCategoryIcon(TechCategory.Frontend) },
+                new TechItem { Name = "SQL Server", Icon = GetCategoryIcon(TechCategory.Database) }
+            };
+            return;
+        }
+
+        var techArray = TechnologiesString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var tech in techArray)
+        {
+            var techName = tech.Trim();
+            if (!string.IsNullOrEmpty(techName))
+            {
+                // Tìm category trong danh sách predefined hoặc đoán
+                var category = PredefinedTechnologies.TryGetValue(techName, out var predefinedCategory)
+                    ? predefinedCategory
+                    : GuessCategory(techName);
+
+                var icon = GetCategoryIcon(category);
+
+                Technologies.Add(new TechItem
+                {
+                    Name = techName,
+                    Icon = icon
+                });
+            }
+        }
+    }
+
+    private TechCategory GuessCategory(string techName)
+    {
+        var lowerTech = techName.ToLower();
+
+        // Mobile keywords
+        if (lowerTech.Contains("flutter") || lowerTech.Contains("react native") ||
+            lowerTech.Contains("xamarin") || lowerTech.Contains("swift") ||
+            lowerTech.Contains("kotlin") || lowerTech.Contains("android") ||
+            lowerTech.Contains("ios") || lowerTech.Contains("ionic"))
+        {
+            return TechCategory.Mobile;
+        }
+
+        // Database keywords
+        if (lowerTech.Contains("sql") || lowerTech.Contains("database") ||
+            lowerTech.Contains("mongo") || lowerTech.Contains("redis") ||
+            lowerTech.Contains("firebase") || lowerTech.Contains("oracle"))
+        {
+            return TechCategory.Database;
+        }
+
+        // Frontend keywords
+        if (lowerTech.Contains("react") || lowerTech.Contains("vue") ||
+            lowerTech.Contains("angular") || lowerTech.Contains("blazor") ||
+            lowerTech.Contains("html") || lowerTech.Contains("css") ||
+            lowerTech.Contains("javascript") || lowerTech.Contains("typescript") ||
+            lowerTech.Contains("bootstrap") || lowerTech.Contains("tailwind"))
+        {
+            return TechCategory.Frontend;
+        }
+
+        // Default to Backend
+        return TechCategory.Backend;
+    }
+
+    private string GetCategoryIcon(TechCategory category)
+    {
+        return category switch
+        {
+            TechCategory.Backend => "fas fa-server",      // Backend (API)
+            TechCategory.Frontend => "fas fa-desktop",    // Frontend
+            TechCategory.Mobile => "fas fa-mobile-alt",   // Mobile
+            TechCategory.Database => "fas fa-database",   // Database
+            _ => "fas fa-code"
+        };
+    }
+
+    public enum TechCategory
+    {
+        Backend,
+        Frontend,
+        Mobile,
+        Database
+    }
+
+    private class TechItem
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+    }
+}

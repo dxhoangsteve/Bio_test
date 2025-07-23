@@ -16,6 +16,7 @@ namespace BioWeb.Server.ViewModels.DTOs
         public string FacebookURL { get; set; } = "";
         public string GitHubURL { get; set; } = "";
         public string LinkedInURL { get; set; } = "";
+        public int ViewCount { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 }

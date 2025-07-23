@@ -7,3 +7,6 @@
 ./BioWeb.server/data/seeddata.cs.bak
 ./BioWeb.server/Migrations
 .vscode
+
+# Uploaded files - không commit ảnh lên git
+./BioWeb.server/wwwroot/uploads/

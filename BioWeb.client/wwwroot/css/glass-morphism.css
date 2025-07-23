@@ -1,0 +1,574 @@
+/* 🎨 Glass Morphism Styles cho Bio Website */
+
+/* Import Google Fonts - Red Hat Mono */
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Mono:wght@400;500;600;700&display=swap');
+
+/* 📝 COMMON PAGE STYLES - Dùng chung cho tất cả các trang */
+.page-title {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 700;
+    font-size: 2.5rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1rem;
+}
+
+.page-subtitle {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 500;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1rem;
+}
+
+.page-description {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 400;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 600;
+    font-size: 2rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* 🌈 Background Gradient */
+.gradient-background {
+    background: linear-gradient(135deg, 
+        rgba(18, 194, 233, 0.79) 0%, 
+        rgba(196, 113, 237, 0.87) 50%, 
+        rgba(246, 79, 89, 0.83) 100%);
+    min-height: 100vh;
+    font-family: 'Red Hat Mono', monospace;
+}
+
+/* 🔮 Glass Container */
+.glass-container {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 254, 254, 0.15) 100%);
+    backdrop-filter: blur(50px);
+    -webkit-backdrop-filter: blur(50px);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+/* 📱 Responsive Glass Container */
+@media (max-width: 768px) {
+    .glass-container {
+        border-radius: 25px;
+        margin: 10px;
+    }
+}
+
+/* 🧭 Navbar Styles */
+.glass-navbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+    padding: 20px;
+    height: 93px;
+}
+
+.glass-navbar .nav-item {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 500;
+    font-size: 30px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.glass-navbar .nav-item:hover {
+    color: #12C2E9;
+    transform: translateY(-2px);
+}
+
+.glass-navbar .nav-item.active {
+    color: #000000;
+}
+
+/* 📱 Mobile Navbar */
+@media (max-width: 768px) {
+    .glass-navbar {
+        flex-direction: column;
+        gap: 20px;
+        height: auto;
+        padding: 15px;
+    }
+    
+    .glass-navbar .nav-item {
+        font-size: 20px;
+    }
+}
+
+/* 📱 Tablet Navbar */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .glass-navbar {
+        gap: 30px;
+    }
+    
+    .glass-navbar .nav-item {
+        font-size: 24px;
+    }
+}
+
+/* 📄 Content Area */
+.glass-content {
+    padding: 40px;
+    min-height: 716px;
+}
+
+@media (max-width: 768px) {
+    .glass-content {
+        padding: 20px;
+    }
+}
+
+/* 🖼️ Project Card */
+.project-card {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 254, 254, 0.15) 100%);
+    backdrop-filter: blur(50px);
+    -webkit-backdrop-filter: blur(50px);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.project-card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.project-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.project-placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.project-card-content {
+    padding: 20px;
+}
+
+.project-card-title {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 600;
+    font-size: 20px;
+    color: #000000;
+    margin-bottom: 10px;
+}
+
+.project-card-description {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 400;
+    font-size: 16px;
+    color: #333333;
+    line-height: 1.4;
+    margin-bottom: 15px;
+}
+
+.project-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.section-title {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 600;
+    font-size: 36px;
+    color: #000000;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.project-image {
+    width: 326px;
+    height: 278px;
+    border-radius: 50px;
+    object-fit: cover;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.2) 0%, 
+        rgba(255, 254, 254, 0.15) 100%);
+}
+
+@media (max-width: 768px) {
+    .project-image {
+        width: 100%;
+        height: 200px;
+        border-radius: 25px;
+    }
+}
+
+/* 📝 Typography */
+.project-title {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 500;
+    font-size: 40px;
+    color: #000000;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.project-description {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 500;
+    font-size: 30px;
+    color: #000000;
+    line-height: 1.32;
+}
+
+@media (max-width: 768px) {
+    .project-title {
+        font-size: 24px;
+    }
+    
+    .project-description {
+        font-size: 16px;
+    }
+}
+
+/* 🔘 Gradient Button */
+.gradient-button {
+    background: linear-gradient(90deg, 
+        rgba(35, 243, 243, 0.78) 0%, 
+        rgba(202, 68, 173, 0.56) 75%);
+    border: 1px solid #000000;
+    border-radius: 8px;
+    padding: 12px 24px;
+    color: #000000;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    min-width: 209px;
+    height: 55px;
+}
+
+.gradient-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    color: #000000;
+    text-decoration: none;
+}
+
+/* 🛠️ Technology Section */
+.technology-container {
+    background: rgba(217, 217, 217, 0.48);
+    border-radius: 15px;
+    padding: 30px;
+    margin-top: 40px;
+}
+
+/* Technology Section - Sử dụng Bootstrap 5 grid system */
+/* Container và tech-item sử dụng Bootstrap classes nên không cần CSS riêng */
+
+.tech-icon {
+    width: 120px;
+    height: 100px;
+    background: rgba(217, 217, 217, 0.87);
+    border-radius: 15px;
+    font-size: 24px;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.tech-icon:hover {
+    background: rgba(217, 217, 217, 1);
+    transform: translateY(-2px);
+}
+
+.tech-label {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 500;
+    font-size: 16px;
+    color: #000000;
+    word-break: break-word;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .tech-icon {
+        width: 140px;
+        height: 110px;
+        font-size: 28px;
+    }
+
+    .tech-label {
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .tech-icon {
+        width: 165px;
+        height: 133px;
+        font-size: 32px;
+    }
+
+    .tech-label {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    .tech-icon {
+        width: 140px;
+        height: 110px;
+    }
+    
+    .tech-label {
+        font-size: 18px;
+    }
+}
+
+/* 🔄 Loading Spinner */
+.spinner-border {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: -0.125em;
+    border: 0.25em solid currentcolor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.text-primary {
+    color: #12C2E9 !important;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.py-5 {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+/* 🎯 Project Card Active State */
+.project-card.active {
+    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 254, 254, 0.25) 100%) !important;
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+.project-card {
+    transition: all 0.3s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* 🎯 Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+/* 👤 About Me Styles */
+.about-me-container {
+    padding: 20px 0;
+}
+
+.avatar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.avatar-image {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-placeholder {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 254, 254, 0.15) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, 0.5);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.about-name {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 700;
+    font-size: 48px;
+    color: #000000;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.about-title {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 500;
+    font-size: 32px;
+    color: #333333;
+    margin: 20px;
+    text-align: left;
+}
+
+.about-bio {
+    font-family: 'Red Hat Mono', monospace;
+    font-weight: 400;
+    font-size: 24px;
+    color: #000000;
+    line-height: 1.4;
+    text-align: left;
+}
+
+/* 📱 About Me Responsive */
+@media (max-width: 768px) {
+    .avatar-image, .avatar-placeholder {
+        width: 200px;
+        height: 200px;
+    }
+
+    .about-name {
+        font-size: 32px;
+        text-align: center;
+    }
+
+    .about-title {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    .about-bio {
+        font-size: 18px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .avatar-image, .avatar-placeholder {
+        width: 150px;
+        height: 150px;
+    }
+
+    .about-name {
+        font-size: 24px;
+    }
+
+    .about-title {
+        font-size: 18px;
+    }
+
+    .about-bio {
+        font-size: 16px;
+    }
+}
+
+/* 📱 Mobile First Responsive */
+@media (max-width: 576px) {
+    .glass-container {
+        margin: 5px;
+        border-radius: 20px;
+    }
+
+    .glass-content {
+        padding: 15px;
+    }
+
+    .project-title {
+        font-size: 20px;
+    }
+
+    .project-description {
+        font-size: 14px;
+    }
+
+    .gradient-button {
+        min-width: 150px;
+        height: 45px;
+        font-size: 14px;
+    }
+}

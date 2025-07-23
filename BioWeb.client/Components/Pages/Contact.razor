@@ -1,0 +1,197 @@
+@page "/contact"
+@using BioWeb.client.Models
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@inject IApiService ApiService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<PageTitle>Contact</PageTitle>
+
+<!-- Server Status Component -->
+<ServerStatusComponent IsServerDown="@isServerDown" ErrorMessage="@serverErrorMessage" OnRetry="@HandleRetry" />
+
+@if (!isServerDown)
+{
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="mt-3">Đang tải thông tin...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Contact Page Content -->
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    @if (contact != null)
+                    {
+                        <!-- Header -->
+                        <div class="text-center mb-5">
+                            <h1 class="page-title mb-3 fs-2">Liên hệ với tôi</h1>
+                            <p class="page-description">Kết nối và trao đổi cùng tôi qua các cách sau</p>
+                        </div>
+
+                        <!-- Contact Cards -->
+                        <div class="row g-4">
+                            <!-- Email Card -->
+                            <div class="col-12 col-sm-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center p-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-envelope fa-2x text-primary"></i>
+                                        </div>
+                                        <h5 class="card-title">Email</h5>
+                                        <p class="card-text text-muted small">@contact.Email</p>
+                                        <a href="mailto:@contact.Email" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-paper-plane me-1"></i>Gửi email
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Phone Card -->
+                            <div class="col-12 col-sm-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center p-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-phone fa-2x text-success"></i>
+                                        </div>
+                                        <h5 class="card-title">Điện thoại</h5>
+                                        <p class="card-text text-muted small">@contact.PhoneNumber</p>
+                                        <a href="tel:@contact.PhoneNumber" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-phone me-1"></i>Gọi ngay
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address Card -->
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body text-center p-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-map-marker-alt fa-2x text-danger"></i>
+                                        </div>
+                                        <h5 class="card-title">Địa chỉ</h5>
+                                        <p class="card-text text-muted">@contact.Address</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Social Media Section -->
+                        <div class="text-center mt-5">
+                            <h4 class="mb-4">Kết nối qua mạng xã hội</h4>
+                            <div class="d-flex justify-content-center gap-3">
+                                @if (!string.IsNullOrEmpty(contact.FacebookURL))
+                                {
+                                    <a href="@contact.FacebookURL" target="_blank" class="btn btn-primary btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                                        <i class="fab fa-facebook-f"></i>
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(contact.GitHubURL))
+                                {
+                                    <a href="@contact.GitHubURL" target="_blank" class="btn btn-dark btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                                        <i class="fab fa-github"></i>
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(contact.LinkedInURL))
+                                {
+                                    <a href="@contact.LinkedInURL" target="_blank" class="btn btn-info btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                                        <i class="fab fa-linkedin-in"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center">
+                            <h1 class="page-title">Đang tải thông tin...</h1>
+                            <p class="page-description">Vui lòng đợi</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private ContactInfoDto? contact;
+    private bool isLoading = true;
+    private bool isServerDown = false;
+    private string serverErrorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to server status changes
+        ApiService.ServerStatusChanged += OnServerStatusChanged;
+
+        // Check server health first
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadAboutMeData();
+        }
+    }
+
+    private void OnServerStatusChanged(bool isHealthy, string errorMessage)
+    {
+        isServerDown = !isHealthy;
+        serverErrorMessage = errorMessage;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadAboutMeData()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Load About Me info only
+            contact = await ApiService.GetContactInfoDto();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading about me data: {ex.Message}");
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleRetry()
+    {
+        isServerDown = false;
+        serverErrorMessage = "";
+        StateHasChanged();
+
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadAboutMeData();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", "About Me page loaded");
+        }
+    }
+
+    public void Dispose()
+    {
+        ApiService.ServerStatusChanged -= OnServerStatusChanged;
+    }
+}

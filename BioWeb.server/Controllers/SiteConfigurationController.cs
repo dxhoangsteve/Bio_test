@@ -233,5 +233,90 @@ namespace BioWeb.Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Lấy thông tin public của site và tăng view count (public)
+        /// </summary>
+        [HttpGet("public")]
+        public async Task<ActionResult<SiteConfigurationApiResponse<SiteConfigurationDto>>> GetPublicSiteInfo()
+        {
+            try
+            {
+                // Tăng view count
+                await _siteConfigService.IncrementViewCountAsync();
+
+                // Lấy thông tin site
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
+
+                var siteInfo = new SiteConfigurationDto
+                {
+                    ConfigID = config.ConfigID,
+                    FullName = config.FullName,
+                    JobTitle = config.JobTitle,
+                    AvatarURL = config.AvatarURL,
+                    BioSummary = config.BioSummary,
+                    PhoneNumber = config.PhoneNumber,
+                    Address = config.Address,
+                    CV_FilePath = config.CV_FilePath,
+                    FacebookURL = config.FacebookURL,
+                    GitHubURL = config.GitHubURL,
+                    LinkedInURL = config.LinkedInURL,
+                    ViewCount = config.ViewCount,
+                    UpdatedAt = config.UpdatedAt
+                };
+
+                return Ok(new SiteConfigurationApiResponse<SiteConfigurationDto>
+                {
+                    Success = true,
+                    Message = "Lấy thông tin site thành công",
+                    Data = siteInfo
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new SiteConfigurationApiResponse<SiteConfigurationDto>
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Tăng view count cho site (public) - endpoint riêng để track visits
+        /// </summary>
+        [HttpPost("increment-view")]
+        public async Task<ActionResult<SiteConfigurationSimpleResponse>> IncrementViewCount()
+        {
+            try
+            {
+                var result = await _siteConfigService.IncrementViewCountAsync();
+
+                if (result)
+                {
+                    return Ok(new SiteConfigurationSimpleResponse
+                    {
+                        Success = true,
+                        Message = "View count đã được tăng"
+                    });
+                }
+                else
+                {
+                    return BadRequest(new SiteConfigurationSimpleResponse
+                    {
+                        Success = false,
+                        Message = "Không thể tăng view count"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new SiteConfigurationSimpleResponse
+                {
+                    Success = false,
+                    Message = $"Lỗi: {ex.Message}"
+                });
+            }
+        }
+
     }
 }

@@ -28,6 +28,30 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/AboutMe.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BYm91dE1lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Contact.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Db250YWN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Projects.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Qcm9qZWN0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/ServerStatusComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TZXJ2ZXJTdGF0dXNDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/TechnologySection.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9UZWNobm9sb2d5U2VjdGlvbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/sterb/dev/Bio_test/BioWeb.client/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ291bnRlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -43,11 +67,3 @@ build_metadata.AdditionalFiles.CssScope =
 [/home/sterb/dev/Bio_test/BioWeb.client/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
-
-[/home/sterb/dev/Bio_test/BioWeb.client/Layout/MainLayout.razor]
-build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L01haW5MYXlvdXQucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = b-mfca8plo6z
-
-[/home/sterb/dev/Bio_test/BioWeb.client/Layout/NavMenu.razor]
-build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L05hdk1lbnUucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = b-ik1h22d152

@@ -14,6 +14,7 @@ namespace BioWeb.Server.Services
         Task<bool> UpdateSiteConfigurationAsync(SiteConfiguration config);
         Task<bool> ResetSiteConfigurationAsync(int id);
         Task<SiteConfiguration> GetOrCreateDefaultConfigAsync();
+        Task<bool> IncrementViewCountAsync();
     }
 
     /// <summary>
@@ -137,6 +138,28 @@ namespace BioWeb.Server.Services
             }
 
             return config;
+        }
+
+        /// <summary>
+        /// Tăng view count cho site configuration.
+        /// </summary>
+        /// <returns>True nếu tăng thành công, ngược lại là false.</returns>
+        public async Task<bool> IncrementViewCountAsync()
+        {
+            try
+            {
+                var config = await GetOrCreateDefaultConfigAsync();
+                config.ViewCount++;
+                config.UpdatedAt = DateTime.UtcNow;
+
+                _context.Entry(config).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         /// <summary>

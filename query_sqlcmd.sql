@@ -20,7 +20,4 @@ select *
 from BioWeb.dbo.Categories
 
 select *
-from BioWeb.dbo.Contacts
-
-select *
 from BioWeb.dbo.Projects

@@ -24,7 +24,24 @@ builder.Services.AddSwaggerGen();
 // 2.5. Thêm Scalar UI
 builder.Services.AddOpenApi();
 
-// 2.6. Đăng ký services
+// 2.6. Cấu hình CORS để cho phép client kết nối
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorClient", policy =>
+    {
+        policy.WithOrigins(
+                "https://localhost:7255", // Client HTTPS port
+                "https://localhost:7256", // Client HTTPS port (backup)
+                "http://localhost:5101",  // Client HTTP port
+                "http://localhost:5102"   // Client HTTP port (backup)
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
+// 2.7. Đăng ký services
 builder.Services.AddScoped<BioWeb.Server.Services.IAuthService, BioWeb.Server.Services.AuthService>();
 builder.Services.AddScoped<BioWeb.Server.Services.ISiteConfigurationService, BioWeb.Server.Services.SiteConfigurationService>();
 builder.Services.AddScoped<BioWeb.Server.Services.IProjectService, BioWeb.Server.Services.ProjectService>();
@@ -70,6 +87,9 @@ if (app.Environment.IsDevelopment())
 
 // Tự động chuyển hướng từ http:// sang https://
 app.UseHttpsRedirection();
+
+// Bật CORS - QUAN TRỌNG: Phải đặt trước UseStaticFiles và MapControllers
+app.UseCors("AllowBlazorClient");
 
 // Cấu hình Static Files cho uploads
 app.UseStaticFiles(); // Default wwwroot

@@ -1,0 +1,243 @@
+@page "/projects"
+@using BioWeb.client.Models
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@inject IApiService ApiService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<PageTitle>My Projects - Bio Website</PageTitle>
+
+<!-- Server Status Component -->
+<ServerStatusComponent IsServerDown="@isServerDown"
+                      ErrorMessage="@serverErrorMessage"
+                      OnRetry="@HandleRetry" />
+
+@if (!isServerDown)
+{
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="mt-3">Đang tải dự án...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Project Image Column -->
+            <div class="col-lg-4 col-md-12 mb-4">
+                @if (featuredProject != null && !string.IsNullOrEmpty(featuredProject.ThumbnailURL))
+                {
+                    <img src="@featuredProject.ThumbnailURL"
+                         alt="@featuredProject.ProjectName"
+                         class="project-image img-fluid" />
+                }
+                else
+                {
+                    <div class="project-image d-flex align-items-center justify-content-center">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                }
+            </div>
+
+            <!-- Project Info Column -->
+            <div class="col-lg-8 col-md-12">
+                <!-- Project Title -->
+                <h1 class="page-title">
+                    @if (featuredProject != null)
+                    {
+                        @featuredProject.ProjectName
+                    }
+                    else
+                    {
+                        <text>Không có dự án nào</text>
+                    }
+                </h1>
+
+                <!-- Project Description -->
+                <div class="page-description mb-4">
+                    @if (featuredProject != null)
+                    {
+                        @featuredProject.Description
+                    }
+                    else
+                    {
+                        <p>Chưa có dự án nào được công bố.</p>
+                    }
+                </div>
+
+                <!-- Action Buttons -->
+                @if (featuredProject != null)
+                {
+                    <div class="d-flex justify-content-end mb-4 gap-3">
+                        @if (!string.IsNullOrEmpty(featuredProject.ProjectURL))
+                        {
+                            <a href="@featuredProject.ProjectURL"
+                               target="_blank"
+                               class="gradient-button">
+                                <i class="fas fa-external-link-alt me-2"></i>Xem dự án
+                            </a>
+                        }
+                        @if (!string.IsNullOrEmpty(featuredProject.GitHubURL))
+                        {
+                            <a href="@featuredProject.GitHubURL"
+                               target="_blank"
+                               class="gradient-button">
+                                <i class="fab fa-github me-2"></i>Xem GitHub
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Technology Section - Full Width -->
+        @if (featuredProject != null)
+        {
+            <div class="mt-4">
+                <TechnologySection TechnologiesString="@featuredProject.Technologies" />
+            </div>
+        }
+
+        <!-- All Projects Section -->
+        @if (allProjects != null && allProjects.Count > 1)
+        {
+            <div class="mt-5">
+                <h2 class="section-title">Tất cả dự án</h2>
+                <div class="row">
+                    @foreach (var project in allProjects)
+                    {
+                        <div class="col-lg-6 col-md-12 mb-4">
+                            <div class="project-card @(project.ProjectID == featuredProject?.ProjectID ? "active" : "")"
+                                 @onclick="() => SelectProject(project)"
+                                 style="cursor: pointer;">
+                                <div class="project-card-image">
+                                    @if (!string.IsNullOrEmpty(project.ThumbnailURL))
+                                    {
+                                        <img src="@project.ThumbnailURL" alt="@project.ProjectName" />
+                                    }
+                                    else
+                                    {
+                                        <div class="project-placeholder">
+                                            <i class="fas fa-image fa-2x"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="project-card-content">
+                                    <h3 class="project-card-title">@project.ProjectName</h3>
+                                    <p class="project-card-description">@project.Description</p>
+                                    <div class="project-card-actions">
+                                        @if (!string.IsNullOrEmpty(project.ProjectURL))
+                                        {
+                                            <a href="@project.ProjectURL" target="_blank"
+                                               class="btn btn-sm btn-primary"
+                                               @onclick:stopPropagation="true">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(project.GitHubURL))
+                                        {
+                                            <a href="@project.GitHubURL" target="_blank"
+                                               class="btn btn-sm btn-secondary"
+                                               @onclick:stopPropagation="true">
+                                                <i class="fab fa-github"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    private ProjectDto? featuredProject;
+    private List<ProjectDto> allProjects = new();
+    private bool isLoading = true;
+    private bool isServerDown = false;
+    private string serverErrorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to server status changes
+        ApiService.ServerStatusChanged += OnServerStatusChanged;
+
+        // Check server health first
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadProjectsData();
+        }
+    }
+
+    private void OnServerStatusChanged(bool isHealthy, string errorMessage)
+    {
+        isServerDown = !isHealthy;
+        serverErrorMessage = errorMessage;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadProjectsData()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Load all published projects
+            allProjects = await ApiService.GetPublishedProjectsAsync();
+            featuredProject = allProjects.FirstOrDefault();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading projects data: {ex.Message}");
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleRetry()
+    {
+        isServerDown = false;
+        serverErrorMessage = "";
+        StateHasChanged();
+
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadProjectsData();
+        }
+    }
+
+    /// <summary>
+    /// Chọn project để hiển thị ở phần featured
+    /// </summary>
+    private void SelectProject(ProjectDto project)
+    {
+        featuredProject = project;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", "Projects page loaded");
+        }
+    }
+
+    public void Dispose()
+    {
+        ApiService.ServerStatusChanged -= OnServerStatusChanged;
+    }
+}

@@ -1,7 +1,12 @@
 ﻿@page "/"
+@inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Bio Website - Đinh Xuân Hoàng</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+@code {
+    protected override void OnInitialized()
+    {
+        // Redirect to about me page
+        Navigation.NavigateTo("/about-me", replace: true);
+    }
+}

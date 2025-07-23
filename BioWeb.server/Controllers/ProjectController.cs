@@ -199,6 +199,22 @@ namespace BioWeb.Server.Controllers
         [AdminAuth]
         public async Task<ActionResult<SimpleResponse>> UpdateProjects(int id, [FromBody] UpdateProjectRequest request)
         {
+            // Kiểm tra ModelState validation
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .SelectMany(x => x.Value.Errors)
+                    .Select(x => x.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new SimpleResponse
+                {
+                    Success = false,
+                    Message = "Dữ liệu không hợp lệ: " + string.Join(", ", errors)
+                });
+            }
+
             try
             {
                 var project = await _projectService.GetProjectByIdAsync(id);
@@ -286,6 +302,22 @@ namespace BioWeb.Server.Controllers
         [AdminAuth]
         public async Task<ActionResult<SimpleResponse>> CreateProject([FromBody] UpdateProjectRequest request)
         {
+            // Kiểm tra ModelState validation
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .SelectMany(x => x.Value.Errors)
+                    .Select(x => x.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new SimpleResponse
+                {
+                    Success = false,
+                    Message = "Dữ liệu không hợp lệ: " + string.Join(", ", errors)
+                });
+            }
+
             try
             {
                 var project = new Project
