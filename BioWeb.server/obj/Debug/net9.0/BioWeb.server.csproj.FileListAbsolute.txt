@@ -167,3 +167,4 @@
 /home/sterb/dev/Bio_test/BioWeb.server/obj/Debug/net9.0/BioWeb.server.genruntimeconfig.cache
 /home/sterb/dev/Bio_test/BioWeb.server/obj/Debug/net9.0/ref/BioWeb.server.dll
 /home/sterb/dev/Bio_test/BioWeb.server/bin/Debug/net9.0/Scalar.AspNetCore.dll
+/home/sterb/dev/Bio_test/BioWeb.server/bin/Debug/net9.0/BioWeb.server.staticwebassets.runtime.json

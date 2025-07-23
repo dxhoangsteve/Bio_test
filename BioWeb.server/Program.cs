@@ -1,5 +1,6 @@
 // --- PHẦN 1: KHAI BÁO CÁC THƯ VIỆN CẦN DÙNG ---
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using BioWeb.Server.Data;
 using Scalar.AspNetCore;
 
@@ -69,6 +70,20 @@ if (app.Environment.IsDevelopment())
 
 // Tự động chuyển hướng từ http:// sang https://
 app.UseHttpsRedirection();
+
+// Cấu hình Static Files cho uploads
+app.UseStaticFiles(); // Default wwwroot
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx =>
+    {
+        // Cache images for 1 day
+        ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=86400");
+    }
+});
 
 // Không cần authentication/authorization middleware nữa
 

@@ -57,7 +57,7 @@ namespace BioWeb.Server.Data
             {
                 FullName = "Đinh Xuân Hoàng",
                 JobTitle = "Full-stack Developer",
-                AvatarURL = "",
+                AvatarURL = "/uploads/avatars/default-avatar.jpg", // Placeholder avatar
                 BioSummary = "Tôi là Đinh Xuân Hoàng, lập trình viên mobile và đang trên con đường học tập web để trở thành fullstack developer sau đó là AI. Tôi luôn cố gắng học hỏi công nghệ sử dụng mới để biết thêm nhiều kiến thức. Cảm ơn bạn đã xem bio này!!",
                 Email = "sterbe2k4@gmail.com",
                 PhoneNumber = "+84 329474859",
@@ -65,7 +65,7 @@ namespace BioWeb.Server.Data
                 GitHubURL = "https://github.com/dxhoangsteve",
                 LinkedInURL = "",
                 FacebookURL = "https://www.facebook.com/Wikileakss",
-                CV_FilePath = "",
+                CV_FilePath = "/uploads/cv/sample-cv.pdf", // Placeholder CV
                 UpdatedAt = DateTime.UtcNow
             };
             context.SiteConfigurations.Add(siteConfig);
@@ -106,7 +106,7 @@ namespace BioWeb.Server.Data
                     Description = "Website cá nhân được xây dựng bằng ASP.NET Core và Blazor",
                     GitHubURL = "https://github.com/dxhoangsteve/Bio_test",
                     ProjectURL = "",
-                    ThumbnailURL = "",
+                    ThumbnailURL = "/uploads/projects/bio-website-thumb.jpg",
                     Technologies = "ASP.NET Core, Blazor, Entity Framework, SQL Server",
                     DisplayOrder = 1,
                     IsPublished = true
@@ -117,7 +117,7 @@ namespace BioWeb.Server.Data
                     Description = "Ứng dụng mobile demo sử dụng React Native",
                     GitHubURL = "https://github.com/thongle321/CKCQUIZZ",
                     ProjectURL = "",
-                    ThumbnailURL = "",
+                    ThumbnailURL = "/uploads/projects/ckcquizz-thumb.jpg",
                     Technologies = "VueJS, .Net core 9, SQL Server, Flutter",
                     DisplayOrder = 2,
                     IsPublished = true
