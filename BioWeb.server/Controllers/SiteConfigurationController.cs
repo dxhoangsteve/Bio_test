@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using BioWeb.Server.Models;
-using BioWeb.Server.ViewModels.DTOs;
+using BioWeb.Shared.Models.DTOs;
 using BioWeb.Server.ViewModels.Requests;
 using BioWeb.Server.ViewModels.Responses;
 using BioWeb.Server.Attributes;
@@ -161,40 +161,7 @@ namespace BioWeb.Server.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy thông tin About Me - Bio summary (public)
-        /// </summary>
-        [HttpGet("about-me")]
-        public async Task<ActionResult<SiteConfigurationApiResponse<AboutMeResponse>>> GetAboutMe()
-        {
-            try
-            {
-                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
 
-                var aboutMe = new AboutMeResponse
-                {
-                    FullName = config.FullName,
-                    JobTitle = config.JobTitle,
-                    AvatarURL = config.AvatarURL,
-                    BioSummary = config.BioSummary
-                };
-
-                return Ok(new SiteConfigurationApiResponse<AboutMeResponse>
-                {
-                    Success = true,
-                    Message = "Lấy thông tin About Me thành công",
-                    Data = aboutMe
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new SiteConfigurationApiResponse<AboutMeResponse>
-                {
-                    Success = false,
-                    Message = $"Lỗi: {ex.Message}"
-                });
-            }
-        }
 
         /// <summary>
         /// Lấy thông tin Contact - liên hệ (public)
@@ -281,36 +248,162 @@ namespace BioWeb.Server.Controllers
             }
         }
 
+
+
         /// <summary>
-        /// Tăng view count cho site (public) - endpoint riêng để track visits
+        /// Lấy thông tin About Me từ SiteConfiguration - public
         /// </summary>
-        [HttpPost("increment-view")]
-        public async Task<ActionResult<SiteConfigurationSimpleResponse>> IncrementViewCount()
+        [HttpGet("about-me")]
+        public async Task<ActionResult<SiteConfigurationApiResponse<AboutMeDto>>> GetAboutMe()
         {
             try
             {
-                var result = await _siteConfigService.IncrementViewCountAsync();
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
 
-                if (result)
+                var aboutMe = new AboutMeDto
                 {
-                    return Ok(new SiteConfigurationSimpleResponse
-                    {
-                        Success = true,
-                        Message = "View count đã được tăng"
-                    });
-                }
-                else
+                    AboutMeID = config.ConfigID, // Sử dụng ConfigID làm AboutMeID
+                    FullName = config.FullName,
+                    JobTitle = config.JobTitle,
+                    AvatarURL = config.AvatarURL,
+                    BioSummary = config.BioSummary,
+                    UpdatedAt = config.UpdatedAt
+                };
+
+                return Ok(new SiteConfigurationApiResponse<AboutMeDto>
                 {
-                    return BadRequest(new SiteConfigurationSimpleResponse
-                    {
-                        Success = false,
-                        Message = "Không thể tăng view count"
-                    });
-                }
+                    Success = true,
+                    Message = "Lấy thông tin About Me thành công",
+                    Data = aboutMe
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new SiteConfigurationSimpleResponse
+                return BadRequest(new SiteConfigurationApiResponse<AboutMeDto>
+                {
+                    Success = false,
+                    Message = $"Có lỗi xảy ra: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật About Me - admin only
+        /// </summary>
+        [HttpPut("about-me")]
+        [AdminAuth]
+        public async Task<ActionResult<SiteConfigurationApiResponse<AboutMeDto>>> UpdateAboutMe([FromBody] UpdateAboutMeRequest request)
+        {
+            try
+            {
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
+
+                // Chỉ cập nhật các field About Me
+                config.FullName = request.FullName;
+                config.JobTitle = request.JobTitle;
+                config.BioSummary = request.BioSummary;
+                config.UpdatedAt = DateTime.UtcNow;
+
+                await _siteConfigService.UpdateSiteConfigurationAsync(config);
+
+                var aboutMe = new AboutMeDto
+                {
+                    AboutMeID = config.ConfigID,
+                    FullName = config.FullName,
+                    JobTitle = config.JobTitle,
+                    AvatarURL = config.AvatarURL,
+                    BioSummary = config.BioSummary,
+                    UpdatedAt = config.UpdatedAt
+                };
+
+                return Ok(new SiteConfigurationApiResponse<AboutMeDto>
+                {
+                    Success = true,
+                    Message = "Cập nhật About Me thành công",
+                    Data = aboutMe
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new SiteConfigurationApiResponse<AboutMeDto>
+                {
+                    Success = false,
+                    Message = $"Cập nhật About Me thất bại: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật Contact - admin only
+        /// </summary>
+        [HttpPut("contact")]
+        [AdminAuth]
+        public async Task<ActionResult<SiteConfigurationApiResponse<ContactResponse>>> UpdateContact([FromBody] UpdateContactRequest request)
+        {
+            try
+            {
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
+
+                // Cập nhật các field Contact
+                config.PhoneNumber = request.PhoneNumber;
+                config.Address = request.Address;
+                config.FacebookURL = request.FacebookURL;
+                config.GitHubURL = request.GitHubURL;
+                config.LinkedInURL = request.LinkedInURL;
+                config.UpdatedAt = DateTime.UtcNow;
+
+                await _siteConfigService.UpdateSiteConfigurationAsync(config);
+
+                var contact = new ContactResponse
+                {
+                    Email = config.Email,
+                    PhoneNumber = config.PhoneNumber,
+                    Address = config.Address,
+                    GitHubURL = config.GitHubURL,
+                    LinkedInURL = config.LinkedInURL,
+                    FacebookURL = config.FacebookURL
+                };
+
+                return Ok(new SiteConfigurationApiResponse<ContactResponse>
+                {
+                    Success = true,
+                    Message = "Cập nhật Contact thành công",
+                    Data = contact
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new SiteConfigurationApiResponse<ContactResponse>
+                {
+                    Success = false,
+                    Message = $"Cập nhật Contact thất bại: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Tăng view count cho bio - public
+        /// </summary>
+        [HttpPut("contact/view-count")]
+        public async Task<ActionResult<SiteSimpleResponse>> IncrementViewCount()
+        {
+            try
+            {
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
+                config.ViewCount++;
+                config.UpdatedAt = DateTime.UtcNow;
+
+                await _siteConfigService.UpdateSiteConfigurationAsync(config);
+
+                return Ok(new SiteSimpleResponse
+                {
+                    Success = true,
+                    Message = "Đã tăng view count"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new SiteSimpleResponse
                 {
                     Success = false,
                     Message = $"Lỗi: {ex.Message}"
@@ -318,5 +411,36 @@ namespace BioWeb.Server.Controllers
             }
         }
 
+    }
+
+    /// <summary>
+    /// Request model để cập nhật About Me
+    /// </summary>
+    public class UpdateAboutMeRequest
+    {
+        public string FullName { get; set; } = "";
+        public string JobTitle { get; set; } = "";
+        public string BioSummary { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Request model để cập nhật Contact
+    /// </summary>
+    public class UpdateContactRequest
+    {
+        public string PhoneNumber { get; set; } = "";
+        public string Address { get; set; } = "";
+        public string FacebookURL { get; set; } = "";
+        public string GitHubURL { get; set; } = "";
+        public string LinkedInURL { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Response đơn giản
+    /// </summary>
+    public class SiteSimpleResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
     }
 }

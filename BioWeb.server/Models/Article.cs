@@ -15,6 +15,9 @@ namespace BioWeb.Server.Models
         [Required]
         public string Content { get; set; } = null!;
 
+        [StringLength(500)]
+        public string? ThumbnailURL { get; set; }
+
         public bool IsPublished { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

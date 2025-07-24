@@ -12,39 +12,66 @@ namespace BioWeb.Server.Attributes
     {
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // Lấy username và password từ header
+            var logger = context.HttpContext.RequestServices.GetService<ILogger<AdminAuthAttribute>>();
+
+            // Kiểm tra JWT token trước
+            var authHeader = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            logger?.LogInformation($"AdminAuth: Authorization header = {authHeader}");
+
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+                var tokenService = context.HttpContext.RequestServices.GetService<ITokenService>();
+                logger?.LogInformation($"AdminAuth: Validating token...");
+
+                if (tokenService != null && tokenService.ValidateToken(token))
+                {
+                    var principal = tokenService.GetPrincipalFromToken(token);
+                    if (principal != null && principal.IsInRole("Admin"))
+                    {
+                        logger?.LogInformation("AdminAuth: Token valid, user is admin");
+                        context.HttpContext.User = principal;
+                        await next();
+                        return;
+                    }
+                    else
+                    {
+                        logger?.LogWarning("AdminAuth: Token valid but user is not admin");
+                    }
+                }
+                else
+                {
+                    logger?.LogWarning("AdminAuth: Token validation failed");
+                }
+            }
+
+            // Fallback: Kiểm tra username/password từ header (cho compatibility)
             var username = context.HttpContext.Request.Headers["X-Admin-Username"].FirstOrDefault();
             var password = context.HttpContext.Request.Headers["X-Admin-Password"].FirstOrDefault();
 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {
-                context.Result = new UnauthorizedObjectResult(new SimpleResponse
+                // Validate admin credentials
+                var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
+                var isValid = await authService.IsValidAdminAsync(username, password);
+
+                if (isValid)
                 {
-                    Success = false,
-                    Message = "Cần đăng nhập admin."
-                });
-                return;
+                    // Lưu admin info vào HttpContext để dùng trong controller
+                    var admin = await authService.GetAdminByUsernameAsync(username);
+                    context.HttpContext.Items["CurrentAdmin"] = admin;
+                    await next();
+                    return;
+                }
             }
 
-            // Validate admin credentials
-            var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
-            var isValid = await authService.IsValidAdminAsync(username, password);
-
-            if (!isValid)
+            // Không có quyền
+            logger?.LogWarning("AdminAuth: Access denied - no valid authentication");
+            context.Result = new UnauthorizedObjectResult(new SimpleResponse
             {
-                context.Result = new UnauthorizedObjectResult(new SimpleResponse
-                {
-                    Success = false,
-                    Message = "Username hoặc password admin không đúng."
-                });
-                return;
-            }
-
-            // Lưu admin info vào HttpContext để dùng trong controller
-            var admin = await authService.GetAdminByUsernameAsync(username);
-            context.HttpContext.Items["CurrentAdmin"] = admin;
-
-            await next();
+                Success = false,
+                Message = "Cần đăng nhập admin hoặc token không hợp lệ."
+            });
         }
     }
 }

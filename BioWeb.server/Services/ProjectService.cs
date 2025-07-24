@@ -1,6 +1,6 @@
 using BioWeb.Server.Data;
 using BioWeb.Server.Models;
-using BioWeb.Server.ViewModels.DTOs;
+using BioWeb.Shared.Models.DTOs;
 using BioWeb.Server.ViewModels.Requests;
 using BioWeb.Server.ViewModels.Responses;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +46,7 @@ namespace BioWeb.Server.Services
 
         public async Task<bool> UpdateProjectAsync(Project project)
         {
+            project.UpdatedAt = DateTime.UtcNow;
             _context.Entry(project).State = EntityState.Modified;
             try
             {

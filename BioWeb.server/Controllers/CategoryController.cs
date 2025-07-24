@@ -125,7 +125,7 @@ namespace BioWeb.Server.Controllers
                 };
 
                 var createdCategory = await _categoryService.CreateCategoryAsync(category);
-                
+
                 var response = new CategoryResponse
                 {
                     CategoryID = createdCategory.CategoryID,
@@ -236,5 +236,20 @@ namespace BioWeb.Server.Controllers
                 });
             }
         }
+
+
+
+
+
+
+    }
+
+    /// <summary>
+    /// Response đơn giản cho Category
+    /// </summary>
+    public class CategorySimpleResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
     }
 }

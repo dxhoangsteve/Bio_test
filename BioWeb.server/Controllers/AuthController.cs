@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using BioWeb.Server.Data;
 using BioWeb.Server.Models;
 using BioWeb.Server.Services;
+using BioWeb.Server.Attributes;
+using BioWeb.Shared.Models.DTOs;
 
 namespace BioWeb.Server.Controllers
 {
@@ -11,10 +13,14 @@ namespace BioWeb.Server.Controllers
     public class AuthController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
+        private readonly ITokenService _tokenService;
 
-        public AuthController(ApplicationDbContext context)
+        public AuthController(ApplicationDbContext context, IAuthService authService, ITokenService tokenService)
         {
             _context = context;
+            _authService = authService;
+            _tokenService = tokenService;
         }
 
         [HttpPost("login")]
@@ -74,6 +80,66 @@ namespace BioWeb.Server.Controllers
 
             return Ok(new { message = "Đổi password thành công" });
         }
+
+        /// <summary>
+        /// Login admin và trả về JWT token
+        /// </summary>
+        [HttpPost("admin/login")]
+        public async Task<ActionResult<LoginResponse>> AdminLogin([FromBody] AdminLoginRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+                {
+                    return BadRequest(new LoginResponse
+                    {
+                        Success = false,
+                        Message = "Username và password là bắt buộc"
+                    });
+                }
+
+                // Validate admin credentials
+                var isValid = await _authService.IsValidAdminAsync(request.Username, request.Password);
+
+                if (!isValid)
+                {
+                    return Unauthorized(new LoginResponse
+                    {
+                        Success = false,
+                        Message = "Username hoặc password không đúng"
+                    });
+                }
+
+                // Generate JWT token
+                var token = _tokenService.GenerateToken(request.Username);
+
+                return Ok(new LoginResponse
+                {
+                    Success = true,
+                    Message = "Đăng nhập thành công",
+                    Token = token
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new LoginResponse
+                {
+                    Success = false,
+                    Message = $"Lỗi server: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Validate JWT token
+        /// </summary>
+        [HttpGet("validate-token")]
+        [AdminAuth]
+        public IActionResult ValidateToken()
+        {
+            // Nếu đến được đây nghĩa là token hợp lệ (đã qua AdminAuth)
+            return Ok(new { Success = true, Message = "Token hợp lệ" });
+        }
     }
 
     public class LoginRequest
@@ -87,5 +153,14 @@ namespace BioWeb.Server.Controllers
         public string Username { get; set; } = null!;
         public string OldPassword { get; set; } = null!;
         public string NewPassword { get; set; } = null!;
+    }
+
+    /// <summary>
+    /// Request model cho admin login
+    /// </summary>
+    public class AdminLoginRequest
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
     }
 }

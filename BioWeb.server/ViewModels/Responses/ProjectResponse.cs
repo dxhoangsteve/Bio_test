@@ -16,6 +16,9 @@ namespace BioWeb.Server.ViewModels.Responses
         public string Technologies { get; set; } = "";
         public int DisplayOrder { get; set; } = 0;
         public bool IsPublished { get; set; } = true;
+        public int ViewCount { get; set; } = 0;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     /// <summary>

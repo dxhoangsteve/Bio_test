@@ -24,9 +24,15 @@ namespace BioWeb.Server.Models
 
         [StringLength(255)]
         public string Technologies { get; set; } = "";
-        
+
         public int DisplayOrder { get; set; } = 0;
-        
+
         public bool IsPublished { get; set; } = true;
+
+        public int ViewCount { get; set; } = 0;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }

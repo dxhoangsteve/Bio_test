@@ -15,8 +15,7 @@ namespace BioWeb.Server.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Article> Articles { get; set; }
-        public DbSet<AboutMe> AboutMes { get; set; }
-        public DbSet<Contact> Contacts { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
