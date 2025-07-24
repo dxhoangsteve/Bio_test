@@ -1,0 +1,55 @@
+@using BioWeb.client.Services
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+@if (isLoading)
+{
+    <div class="text-center p-4">
+        <i class="fas fa-spinner fa-spin"></i> Đang kiểm tra quyền...
+    </div>
+}
+else if (isAdmin)
+{
+    @ChildContent
+}
+else
+{
+    <div class="access-denied">
+        <div class="container text-center p-5">
+            <i class="fas fa-lock fa-3x text-danger mb-3"></i>
+            <h3>Truy cập bị từ chối</h3>
+            <p>Bạn cần đăng nhập admin để truy cập trang này.</p>
+            <button class="btn btn-primary" @onclick="GoToLogin">
+                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập Admin
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    private bool isLoading = true;
+    private bool isAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAdmin = await AuthService.IsAdminAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo("/me/admin/login");
+    }
+}
+
+<style>
+    .access-denied {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>

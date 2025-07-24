@@ -1,0 +1,434 @@
+@page "/admin/site-config"
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@using BioWeb.client.Components.Shared
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Admin - Cấu hình Site</PageTitle>
+
+<AdminGuard>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1><i class="fas fa-cog me-2"></i>Cấu hình Site</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="/admin/dashboard">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item active">Cấu hình Site</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-secondary"
+                            @onclick="@(() => Navigation.NavigateTo("/admin/dashboard"))">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="text-center p-4">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p class="mt-2">Đang tải cấu hình...</p>
+            </div>
+        }
+        else
+        {
+            <!-- Site Configuration Form -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="config-panel">
+                        <h4><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</h4>
+
+                        <EditForm Model="siteConfig" OnValidSubmit="SaveConfiguration">
+                            <DataAnnotationsValidator />
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Họ và tên *</label>
+                                        <InputText @bind-Value="siteConfig.FullName" class="form-control"
+                                            placeholder="Nhập họ và tên đầy đủ" />
+                                        <ValidationMessage For="() => siteConfig.FullName" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Chức danh</label>
+                                        <InputText @bind-Value="siteConfig.JobTitle" class="form-control"
+                                            placeholder="Ví dụ: Full-stack Developer" />
+                                        <ValidationMessage For="() => siteConfig.JobTitle" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Avatar</label>
+                                <FileUploadComponent UploadEndpoint="/api/Upload/image" AcceptedTypes="image/*"
+                                    MaxSizeInMB="5" CurrentImageUrl="@siteConfig.AvatarURL" Label="Chọn avatar"
+                                    OnUploadSuccess="OnAvatarUploaded" OnRemoveImage="OnAvatarRemoved" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Giới thiệu bản thân</label>
+                                <InputTextArea @bind-Value="siteConfig.BioSummary" class="form-control" rows="5"
+                                    placeholder="Viết một đoạn giới thiệu ngắn về bản thân..." />
+                                <ValidationMessage For="() => siteConfig.BioSummary" />
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <h4><i class="fas fa-address-book me-2"></i>Thông tin liên hệ</h4>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Số điện thoại</label>
+                                        <InputText @bind-Value="siteConfig.PhoneNumber" class="form-control"
+                                            placeholder="Ví dụ: +84 123 456 789" />
+                                        <ValidationMessage For="() => siteConfig.PhoneNumber" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Địa chỉ</label>
+                                        <InputText @bind-Value="siteConfig.Address" class="form-control"
+                                            placeholder="Thành phố, Quốc gia" />
+                                        <ValidationMessage For="() => siteConfig.Address" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <h4><i class="fas fa-share-alt me-2"></i>Mạng xã hội</h4>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fab fa-github me-2"></i>GitHub URL
+                                        </label>
+                                        <InputText @bind-Value="siteConfig.GitHubURL" class="form-control"
+                                            placeholder="https://github.com/username" />
+                                        <ValidationMessage For="() => siteConfig.GitHubURL" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fab fa-linkedin me-2"></i>LinkedIn URL
+                                        </label>
+                                        <InputText @bind-Value="siteConfig.LinkedInURL" class="form-control"
+                                            placeholder="https://linkedin.com/in/username" />
+                                        <ValidationMessage For="() => siteConfig.LinkedInURL" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fab fa-facebook me-2"></i>Facebook URL
+                                        </label>
+                                        <InputText @bind-Value="siteConfig.FacebookURL" class="form-control"
+                                            placeholder="https://facebook.com/username" />
+                                        <ValidationMessage For="() => siteConfig.FacebookURL" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <h4><i class="fas fa-file-pdf me-2"></i>CV & Tài liệu</h4>
+
+                            <div class="mb-3">
+                                <label class="form-label">CV File Path</label>
+                                <div class="input-group">
+                                    <InputText @bind-Value="siteConfig.CV_FilePath" class="form-control"
+                                        placeholder="Đường dẫn đến file CV" />
+                                    <button type="button" class="btn btn-outline-secondary">
+                                        <i class="fas fa-upload"></i> Upload CV
+                                    </button>
+                                </div>
+                                <ValidationMessage For="() => siteConfig.CV_FilePath" />
+                                <small class="form-text text-muted">
+                                    Tải lên file CV (PDF) để khách hàng có thể tải xuống
+                                </small>
+                            </div>
+
+                            <!-- Statistics -->
+                            <hr class="my-4" />
+
+                            <h4><i class="fas fa-chart-bar me-2"></i>Thống kê</h4>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-eye"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <h5>@siteConfig.ViewCount</h5>
+                                            <p>Lượt xem trang</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-calendar"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <h5>@siteConfig.UpdatedAt.ToString("dd/MM/yyyy")</h5>
+                                            <p>Cập nhật lần cuối</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-save me-2"></i>
+                                    }
+                                    Lưu cấu hình
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</AdminGuard>
+
+@code {
+    private SiteConfigurationDto siteConfig = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSiteConfiguration();
+    }
+
+    private async Task LoadSiteConfiguration()
+    {
+        isLoading = true;
+        var response = await ApiService.GetSiteConfigurationAsync();
+        if (response.Success && response.Data != null)
+        {
+            siteConfig = response.Data;
+        }
+        else
+        {
+            // Tạo config mặc định nếu chưa có
+            siteConfig = new SiteConfigurationDto
+            {
+                FullName = "Chưa cập nhật",
+                JobTitle = "",
+                AvatarURL = "",
+                BioSummary = "",
+                PhoneNumber = "",
+                Address = "",
+                CV_FilePath = "",
+                FacebookURL = "",
+                GitHubURL = "",
+                LinkedInURL = "",
+                ViewCount = 0,
+                UpdatedAt = DateTime.Now
+            };
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task SaveConfiguration()
+    {
+        if (string.IsNullOrWhiteSpace(siteConfig.FullName))
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Vui lòng nhập họ và tên!");
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            var response = await ApiService.UpdateSiteConfigurationAsync(siteConfig);
+            if (response.Success)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Cập nhật cấu hình thành công!");
+                await LoadSiteConfiguration(); // Reload để lấy dữ liệu mới nhất
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Cập nhật thất bại: {response.Message}");
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void OnAvatarUploaded(string imageUrl)
+    {
+        siteConfig.AvatarURL = imageUrl;
+    }
+
+    private void OnAvatarRemoved()
+    {
+        siteConfig.AvatarURL = "";
+    }
+}
+
+<style>
+    .config-panel {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .config-panel h4 {
+        color: white;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .form-control,
+    .form-select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        color: #333;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background: rgba(255, 255, 255, 1);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        color: #333;
+    }
+
+    .form-label {
+        color: white;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+
+    .stat-icon i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-content h5 {
+        color: white;
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .stat-content p {
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .input-group .btn {
+        border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        transform: none;
+        box-shadow: none;
+    }
+
+    hr {
+        border-color: rgba(255, 255, 255, 0.2);
+        margin: 2rem 0;
+    }
+
+    .form-text {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    @@media (max-width: 768px) {
+        .config-panel {
+            padding: 1rem;
+        }
+
+        .stat-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .stat-icon {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+    }
+</style>

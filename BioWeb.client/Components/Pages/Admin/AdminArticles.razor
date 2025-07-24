@@ -1,0 +1,491 @@
+@page "/admin/articles"
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Admin - Quản lý Articles</PageTitle>
+
+<AdminGuard>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1><i class="fas fa-newspaper me-2"></i>Quản lý Articles</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="/admin/dashboard">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item active">Articles</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div>
+                        <button class="btn btn-success me-2" @onclick="ShowAddModal">
+                            <i class="fas fa-plus me-2"></i>Thêm Article
+                        </button>
+                        <button class="btn btn-outline-secondary"
+                            @onclick="@(() => Navigation.NavigateTo("/admin/dashboard"))">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="admin-controls-panel">
+                    <h5><i class="fas fa-tools me-2"></i>Công cụ Admin</h5>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary" @onclick="RefreshData">
+                            <i class="fas fa-sync-alt me-2"></i>Làm mới
+                        </button>
+                        <button class="btn btn-outline-info" @onclick="ToggleView">
+                            <i class="fas fa-eye me-2"></i>@(showPublicView ? "Xem Admin" : "Xem Public")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Articles List -->
+        <div class="row">
+            <div class="col-12">
+                @if (isLoading)
+                {
+                    <div class="text-center p-4">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Đang tải articles...</p>
+                    </div>
+                }
+                else if (articles.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Category</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var article in articles)
+                                {
+                                    <tr>
+                                        <td>@article.ArticleID</td>
+                                        <td>
+                                            <div class="article-title">
+                                                @article.Title
+                                                @if (!string.IsNullOrEmpty(article.ThumbnailURL))
+                                                {
+                                                    <i class="fas fa-image text-info ms-2" title="Có thumbnail"></i>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">@article.CategoryName</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(article.IsPublished ? "success" : "warning")">
+                                                @(article.IsPublished ? "Published" : "Draft")
+                                            </span>
+                                        </td>
+                                        <td>@article.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                    @onclick="() => ViewArticle(article)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-warning" @onclick="() => EditArticle(article)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-info" @onclick="() => TogglePublish(article)">
+                                                    <i class="fas fa-@(article.IsPublished ? "eye-slash" : "eye")"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteArticle(article)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-5">
+                        <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                        <h4>Chưa có articles nào</h4>
+                        <p class="text-muted">Hãy thêm bài viết đầu tiên của bạn!</p>
+                        <button class="btn btn-primary" @onclick="ShowAddModal">
+                            <i class="fas fa-plus me-2"></i>Thêm Article
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    @if (showModal)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-@(isEditMode ? "edit" : "plus") me-2"></i>
+                            @(isEditMode ? "Sửa Article" : "Thêm Article")
+                        </h5>
+                        <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="currentArticle" OnValidSubmit="SaveArticle">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label class="form-label">Tiêu đề *</label>
+                                <InputText @bind-Value="currentArticle.Title" class="form-control"
+                                    placeholder="Nhập tiêu đề bài viết" />
+                                <ValidationMessage For="() => currentArticle.Title" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Category *</label>
+                                <InputSelect @bind-Value="currentArticle.CategoryID" class="form-select">
+                                    <option value="0">-- Chọn category --</option>
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.CategoryID">@category.CategoryName</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => currentArticle.CategoryID" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nội dung *</label>
+                                <InputTextArea @bind-Value="currentArticle.Content" class="form-control" rows="10"
+                                    placeholder="Nhập nội dung bài viết (hỗ trợ Markdown)" />
+                                <ValidationMessage For="() => currentArticle.Content" />
+                                <small class="form-text text-muted">Hỗ trợ Markdown formatting</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Thumbnail</label>
+                                <FileUploadComponent UploadEndpoint="/api/Upload/image" AcceptedTypes="image/*"
+                                    MaxSizeInMB="5" CurrentImageUrl="@currentArticle.ThumbnailURL" Label="Chọn thumbnail"
+                                    OnUploadSuccess="OnThumbnailUploaded" OnRemoveImage="OnThumbnailRemoved" />
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <InputCheckbox @bind-Value="currentArticle.IsPublished" class="form-check-input"
+                                        id="publishCheck" />
+                                    <label class="form-check-label" for="publishCheck">
+                                        Publish ngay
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Hủy</button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                    }
+                                    @(isEditMode ? "Cập nhật" : "Thêm mới")
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</AdminGuard>
+
+@code {
+    private List<ArticleDto> articles = new();
+    private List<CategoryDto> categories = new();
+    private bool isLoading = true;
+    private bool showPublicView = false;
+    private bool showModal = false;
+    private bool isEditMode = false;
+    private bool isSaving = false;
+    private ArticleDto currentArticle = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        await Task.WhenAll(LoadArticles(), LoadCategories());
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadArticles()
+    {
+        var response = await ApiService.GetArticlesForAdminAsync();
+        if (response.Success && response.Data != null)
+        {
+            articles = response.Data;
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        var response = await ApiService.GetCategoriesForAdminAsync();
+        if (response.Success && response.Data != null)
+        {
+            categories = response.Data;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+    }
+
+    private void ToggleView()
+    {
+        showPublicView = !showPublicView;
+        // Logic để switch giữa admin view và public view
+    }
+
+    private void ShowAddModal()
+    {
+        currentArticle = new ArticleDto();
+        isEditMode = false;
+        showModal = true;
+    }
+
+    private void EditArticle(ArticleDto article)
+    {
+        currentArticle = new ArticleDto
+        {
+            ArticleID = article.ArticleID,
+            Title = article.Title,
+            Content = article.Content,
+            ThumbnailURL = article.ThumbnailURL,
+            IsPublished = article.IsPublished,
+            CategoryID = article.CategoryID,
+            CategoryName = article.CategoryName,
+            CreatedAt = article.CreatedAt
+        };
+        isEditMode = true;
+        showModal = true;
+    }
+
+    private void ViewArticle(ArticleDto article)
+    {
+        Navigation.NavigateTo($"/blog/{article.ArticleID}");
+    }
+
+    private async Task TogglePublish(ArticleDto article)
+    {
+        var updatedArticle = new ArticleDto
+        {
+            ArticleID = article.ArticleID,
+            Title = article.Title,
+            Content = article.Content,
+            ThumbnailURL = article.ThumbnailURL,
+            IsPublished = !article.IsPublished,
+            CategoryID = article.CategoryID
+        };
+
+        var response = await ApiService.UpdateArticleAsync(article.ArticleID, updatedArticle);
+        if (response.Success)
+        {
+            await LoadArticles();
+        }
+    }
+
+    private async Task DeleteArticle(ArticleDto article)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc muốn xóa bài viết '{article.Title}'?");
+        if (confirmed)
+        {
+            var response = await ApiService.DeleteArticleAsync(article.ArticleID);
+            if (response.Success)
+            {
+                await LoadArticles();
+            }
+        }
+    }
+
+    private async Task SaveArticle()
+    {
+        if (currentArticle.CategoryID == 0)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Vui lòng chọn category!");
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            if (isEditMode)
+            {
+                var response = await ApiService.UpdateArticleAsync(currentArticle.ArticleID, currentArticle);
+                if (response.Success)
+                {
+                    await LoadArticles();
+                    CloseModal();
+                }
+            }
+            else
+            {
+                var response = await ApiService.CreateArticleAsync(currentArticle);
+                if (response.Success)
+                {
+                    await LoadArticles();
+                    CloseModal();
+                }
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        currentArticle = new();
+        isEditMode = false;
+    }
+
+    private void OnThumbnailUploaded(string imageUrl)
+    {
+        currentArticle.ThumbnailURL = imageUrl;
+    }
+
+    private void OnThumbnailRemoved()
+    {
+        currentArticle.ThumbnailURL = "";
+    }
+}
+
+<style>
+    .admin-controls-panel {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+
+    .admin-table {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .admin-table thead {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .admin-table th {
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 1rem;
+    }
+
+    .admin-table td {
+        border: none;
+        color: white;
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .admin-table tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: background-color 0.3s ease;
+    }
+
+    .admin-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .article-title {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .modal-content {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control,
+    .form-select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background: rgba(255, 255, 255, 1);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-group .btn {
+        margin-right: 2px;
+    }
+
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .admin-table {
+            font-size: 0.875rem;
+        }
+
+        .article-title {
+            max-width: 150px;
+        }
+
+        .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+        }
+    }
+</style>

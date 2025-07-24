@@ -1,0 +1,88 @@
+@page "/me/admin/login"
+@using BioWeb.client.Services
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Admin Login</PageTitle>
+
+<div class="container">
+    <div class="row align-items-center justify-content-center ml-5 mr-5">
+        <h1 class="admin-login-title text-centers">Admin Login</h1>
+        <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
+            <div class="form-group mt-5">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" @bind-value="username" required />
+            </div>
+            <div class="form-group mt-5">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" @bind-value="password" required />
+            </div>
+            <button type="submit" class="btn btn-primary mt-5" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <i class="fas fa-spinner fa-spin"></i>
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </button>
+        </form>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-message">@errorMessage</div>
+        }
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private string errorMessage = "";
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "Vui lòng nhập đầy đủ thông tin";
+            isLoading = false;
+            StateHasChanged();
+            return;
+        }
+
+        try
+        {
+            var response = await ApiService.LoginAsync(username, password);
+            if (response.Success)
+            {
+                // Set JWT token vào ApiService
+                if (!string.IsNullOrEmpty(response.Token))
+                {
+                    await ApiService.SetAuthTokenAsync(response.Token);
+                }
+
+                // Navigate đến admin dashboard
+                Navigation.NavigateTo("/admin/dashboard");
+            }
+            else
+            {
+                errorMessage = response.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau.";
+            Console.WriteLine($"Login error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

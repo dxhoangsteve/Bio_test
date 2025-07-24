@@ -1,5 +1,5 @@
 @page "/contact"
-@using BioWeb.client.Models
+@using BioWeb.Shared.Models.DTOs
 @using BioWeb.client.Services
 @using BioWeb.client.Components
 @inject IApiService ApiService
@@ -90,19 +90,22 @@
                             <div class="d-flex justify-content-center gap-3">
                                 @if (!string.IsNullOrEmpty(contact.FacebookURL))
                                 {
-                                    <a href="@contact.FacebookURL" target="_blank" class="btn btn-primary btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                                    <a href="@contact.FacebookURL" target="_blank" class="btn btn-primary btn-lg rounded-circle"
+                                        style="width: 60px; height: 60px;">
                                         <i class="fab fa-facebook-f"></i>
                                     </a>
                                 }
                                 @if (!string.IsNullOrEmpty(contact.GitHubURL))
                                 {
-                                    <a href="@contact.GitHubURL" target="_blank" class="btn btn-dark btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                                    <a href="@contact.GitHubURL" target="_blank" class="btn btn-dark btn-lg rounded-circle"
+                                        style="width: 60px; height: 60px;">
                                         <i class="fab fa-github"></i>
                                     </a>
                                 }
                                 @if (!string.IsNullOrEmpty(contact.LinkedInURL))
                                 {
-                                    <a href="@contact.LinkedInURL" target="_blank" class="btn btn-info btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                                    <a href="@contact.LinkedInURL" target="_blank" class="btn btn-info btn-lg rounded-circle"
+                                        style="width: 60px; height: 60px;">
                                         <i class="fab fa-linkedin-in"></i>
                                     </a>
                                 }

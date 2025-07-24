@@ -1,0 +1,472 @@
+@page "/admin/projects"
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@using BioWeb.client.Components.Dialogs
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Admin - Quản lý Projects</PageTitle>
+
+<AdminGuard>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1><i class="fas fa-project-diagram me-2"></i>Quản lý Projects</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="/admin/dashboard">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item active">Projects</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div>
+                        <button class="btn btn-success me-2" @onclick="ShowAddModal">
+                            <i class="fas fa-plus me-2"></i>Thêm Project
+                        </button>
+                        <button class="btn btn-outline-secondary"
+                            @onclick="@(() => Navigation.NavigateTo("/admin/dashboard"))">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="admin-controls-panel">
+                    <h5><i class="fas fa-tools me-2"></i>Công cụ Admin</h5>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary" @onclick="RefreshData">
+                            <i class="fas fa-sync-alt me-2"></i>Làm mới
+                        </button>
+                        <button class="btn btn-outline-info" @onclick="ToggleView">
+                            <i class="fas fa-eye me-2"></i>@(showPublicView ? "Xem Admin" : "Xem Public")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects List với Admin Controls -->
+        <div class="row">
+            <div class="col-12">
+                @if (isLoading)
+                {
+                    <div class="text-center p-4">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Đang tải projects...</p>
+                    </div>
+                }
+                else if (projects.Any())
+                {
+                    <div class="row g-4">
+                        @foreach (var project in projects)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="project-admin-card">
+                                    <!-- Admin Controls trên card -->
+                                    <div class="admin-controls-overlay">
+                                        <button class="btn btn-sm btn-warning" @onclick="() => EditProject(project)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteProject(project)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-info" @onclick="() => TogglePublish(project)">
+                                            <i class="fas fa-@(project.IsPublished ? "eye-slash" : "eye")"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Project Content (tái sử dụng style từ Projects.razor) -->
+                                    <div class="project-content">
+                                        <h5>@project.ProjectName</h5>
+                                        <p>@project.Description</p>
+                                        <div class="project-meta">
+                                            <span class="badge bg-@(project.IsPublished ? "success" : "secondary")">
+                                                @(project.IsPublished ? "Published" : "Draft")
+                                            </span>
+                                            <small class="text-muted">Views: @project.ViewCount</small>
+                                        </div>
+                                        <div class="project-links mt-2">
+                                            @if (!string.IsNullOrEmpty(project.GitHubURL))
+                                            {
+                                                <a href="@project.GitHubURL" target="_blank" class="btn btn-sm btn-outline-dark">
+                                                    <i class="fab fa-github"></i>
+                                                </a>
+                                            }
+                                            @if (!string.IsNullOrEmpty(project.ProjectURL))
+                                            {
+                                                <a href="@project.ProjectURL" target="_blank"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-5">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h4>Chưa có projects nào</h4>
+                        <p class="text-muted">Hãy thêm project đầu tiên của bạn!</p>
+                        <button class="btn btn-primary" @onclick="ShowAddModal">
+                            <i class="fas fa-plus me-2"></i>Thêm Project
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Management Modal -->
+    @if (showModal)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-@(isEditMode ? "edit" : "plus") me-2"></i>
+                            @(isEditMode ? "Sửa Project" : "Thêm Project")
+                        </h5>
+                        <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="currentProject" OnValidSubmit="SaveProject">
+                            <DataAnnotationsValidator />
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tên Project *</label>
+                                        <InputText @bind-Value="currentProject.ProjectName" class="form-control"
+                                            placeholder="Nhập tên project" />
+                                        <ValidationMessage For="() => currentProject.ProjectName" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Display Order</label>
+                                        <InputNumber @bind-Value="currentProject.DisplayOrder" class="form-control" />
+                                        <ValidationMessage For="() => currentProject.DisplayOrder" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Mô tả</label>
+                                <InputTextArea @bind-Value="currentProject.Description" class="form-control" rows="3"
+                                    placeholder="Mô tả về project" />
+                                <ValidationMessage For="() => currentProject.Description" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Thumbnail</label>
+                                <FileUploadComponent UploadEndpoint="/api/Upload/project-thumbnail" AcceptedTypes="image/*"
+                                    MaxSizeInMB="5" CurrentImageUrl="@currentProject.ThumbnailURL"
+                                    Label="Chọn thumbnail cho project" OnUploadSuccess="OnThumbnailUploaded"
+                                    OnRemoveImage="OnThumbnailRemoved" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">GitHub URL</label>
+                                        <InputText @bind-Value="currentProject.GitHubURL" class="form-control"
+                                            placeholder="https://github.com/username/repo" />
+                                        <ValidationMessage For="() => currentProject.GitHubURL" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Project URL</label>
+                                        <InputText @bind-Value="currentProject.ProjectURL" class="form-control"
+                                            placeholder="https://project-demo.com" />
+                                        <ValidationMessage For="() => currentProject.ProjectURL" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Technologies</label>
+                                <InputText @bind-Value="currentProject.Technologies" class="form-control"
+                                    placeholder="React, Node.js, MongoDB (phân cách bằng dấu phẩy)" />
+                                <ValidationMessage For="() => currentProject.Technologies" />
+                                <small class="form-text text-muted">
+                                    Nhập các công nghệ sử dụng, phân cách bằng dấu phẩy
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <InputCheckbox @bind-Value="currentProject.IsPublished" class="form-check-input"
+                                        id="publishCheck" />
+                                    <label class="form-check-label" for="publishCheck">
+                                        Publish ngay
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Hủy</button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                    }
+                                    @(isEditMode ? "Cập nhật" : "Thêm mới")
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</AdminGuard>
+
+@code {
+    private List<ProjectDto> projects = new();
+    private bool isLoading = true;
+    private bool showPublicView = false;
+    private bool showModal = false;
+    private bool isEditMode = false;
+    private bool isSaving = false;
+    private ProjectDto currentProject = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+    }
+
+    private async Task LoadProjects()
+    {
+        isLoading = true;
+        var response = await ApiService.GetProjectsAsync();
+        if (response.Success && response.Data != null)
+        {
+            projects = response.Data;
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadProjects();
+    }
+
+    private void ToggleView()
+    {
+        showPublicView = !showPublicView;
+        // Logic để switch giữa admin view và public view
+    }
+
+    private void ShowAddModal()
+    {
+        currentProject = new ProjectDto
+        {
+            IsPublished = true,
+            DisplayOrder = 0
+        };
+        isEditMode = false;
+        showModal = true;
+    }
+
+    private void EditProject(ProjectDto project)
+    {
+        currentProject = new ProjectDto
+        {
+            ProjectID = project.ProjectID,
+            ProjectName = project.ProjectName,
+            Description = project.Description,
+            GitHubURL = project.GitHubURL,
+            ProjectURL = project.ProjectURL,
+            ThumbnailURL = project.ThumbnailURL,
+            Technologies = project.Technologies,
+            DisplayOrder = project.DisplayOrder,
+            IsPublished = project.IsPublished,
+            ViewCount = project.ViewCount,
+            CreatedAt = project.CreatedAt
+        };
+        isEditMode = true;
+        showModal = true;
+    }
+
+    private async Task DeleteProject(ProjectDto project)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+        $"Bạn có chắc muốn xóa project '{project.ProjectName}'?\n\nHành động này không thể hoàn tác.");
+
+        if (confirmed)
+        {
+            var response = await ApiService.DeleteProjectAsync(project.ProjectID);
+            if (response.Success)
+            {
+                await LoadProjects();
+                await JSRuntime.InvokeVoidAsync("alert", "Xóa project thành công!");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Không thể xóa project: {response.Message}");
+            }
+        }
+    }
+
+    private async Task TogglePublish(ProjectDto project)
+    {
+        var updatedProject = new ProjectDto
+        {
+            ProjectID = project.ProjectID,
+            ProjectName = project.ProjectName,
+            Description = project.Description,
+            GitHubURL = project.GitHubURL,
+            ProjectURL = project.ProjectURL,
+            ThumbnailURL = project.ThumbnailURL,
+            Technologies = project.Technologies,
+            DisplayOrder = project.DisplayOrder,
+            IsPublished = !project.IsPublished,
+            ViewCount = project.ViewCount,
+            CreatedAt = project.CreatedAt
+        };
+
+        var response = await ApiService.UpdateProjectAsync(project.ProjectID, updatedProject);
+        if (response.Success)
+        {
+            await LoadProjects();
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Không thể cập nhật trạng thái: {response.Message}");
+        }
+    }
+
+    private async Task SaveProject()
+    {
+        if (string.IsNullOrWhiteSpace(currentProject.ProjectName))
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Vui lòng nhập tên project!");
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            if (isEditMode)
+            {
+                var response = await ApiService.UpdateProjectAsync(currentProject.ProjectID, currentProject);
+                if (response.Success)
+                {
+                    await LoadProjects();
+                    CloseModal();
+                    await JSRuntime.InvokeVoidAsync("alert", "Cập nhật project thành công!");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"Cập nhật thất bại: {response.Message}");
+                }
+            }
+            else
+            {
+                var response = await ApiService.CreateProjectAsync(currentProject);
+                if (response.Success)
+                {
+                    await LoadProjects();
+                    CloseModal();
+                    await JSRuntime.InvokeVoidAsync("alert", "Thêm project thành công!");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"Thêm thất bại: {response.Message}");
+                }
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        currentProject = new();
+        isEditMode = false;
+    }
+
+    private void OnThumbnailUploaded(string imageUrl)
+    {
+        currentProject.ThumbnailURL = imageUrl;
+    }
+
+    private void OnThumbnailRemoved()
+    {
+        currentProject.ThumbnailURL = "";
+    }
+}
+
+<style>
+    .admin-controls-panel {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+
+    .project-admin-card {
+        position: relative;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .project-admin-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .admin-controls-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .project-admin-card:hover .admin-controls-overlay {
+        opacity: 1;
+    }
+
+    .project-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+    }
+
+    .project-links {
+        display: flex;
+        gap: 10px;
+    }
+</style>

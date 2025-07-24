@@ -1,0 +1,254 @@
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components.Shared
+@inject IApiService ApiService
+
+<!-- Edit About Me Dialog -->
+<BaseDialog Title="Sửa Thông Tin About Me" IsVisible="@IsVisible" IsLoading="@isLoading" SaveButtonText="Cập nhật"
+    OnClose="@OnClose" OnSave="@HandleSave">
+
+    @if (aboutMe != null)
+    {
+        <div class="form-group mb-3">
+            <label class="form-label">Họ và Tên *</label>
+            <input type="text" class="form-control" @bind="aboutMe.FullName" placeholder="Nhập họ và tên" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Chức danh/Nghề nghiệp *</label>
+            <input type="text" class="form-control" @bind="aboutMe.JobTitle" placeholder="Ví dụ: Full Stack Developer" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Mô tả ngắn về bản thân *</label>
+            <textarea class="form-control" rows="4" @bind="aboutMe.BioSummary"
+                placeholder="Viết một đoạn mô tả ngắn về bản thân, kinh nghiệm và kỹ năng của bạn..."></textarea>
+            <small class="form-text text-muted">Đây là phần mô tả sẽ hiển thị trên trang About Me</small>
+        </div>
+
+        <div class="form-group mb-3">
+            <FileUploadComponent UploadEndpoint="/api/upload/avatar" AcceptedTypes="image/*" MaxSizeInMB="5"
+                CurrentImageUrl="@aboutMe.AvatarURL" Label="Avatar" OnUploadSuccess="HandleAvatarUpload"
+                OnRemoveImage="HandleRemoveAvatar" />
+        </div>
+
+        <div class="info-section">
+            <h6><i class="fas fa-info-circle me-2"></i>Thông tin bổ sung</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <strong>ID:</strong> @aboutMe.AboutMeID
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <strong>Cập nhật lần cuối:</strong>
+                        @aboutMe.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+    else if (isLoading)
+    {
+        <div class="text-center p-4">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Đang tải thông tin...</p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Không thể tải thông tin About Me. Vui lòng thử lại.
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>@successMessage
+        </div>
+    }
+</BaseDialog>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnAboutMeChanged { get; set; }
+
+    private bool isLoading = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+    private AboutMeDto? aboutMe = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && aboutMe == null)
+        {
+            await LoadAboutMe();
+        }
+    }
+
+    private async Task LoadAboutMe()
+    {
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            aboutMe = await ApiService.GetAboutMeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi tải thông tin About Me: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (aboutMe == null)
+        {
+            errorMessage = "Không có dữ liệu để lưu";
+            return;
+        }
+
+        // Validation
+        if (string.IsNullOrWhiteSpace(aboutMe.FullName))
+        {
+            errorMessage = "Họ và tên là bắt buộc";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(aboutMe.JobTitle))
+        {
+            errorMessage = "Chức danh/Nghề nghiệp là bắt buộc";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(aboutMe.BioSummary))
+        {
+            errorMessage = "Mô tả ngắn về bản thân là bắt buộc";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+            var response = await ApiService.UpdateAboutMeAsync(aboutMe);
+
+            if (response.Success)
+            {
+                successMessage = "Cập nhật thông tin About Me thành công!";
+                await OnAboutMeChanged.InvokeAsync();
+
+                // Auto close after 2 seconds
+                await Task.Delay(2000);
+                await OnClose.InvokeAsync();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Cập nhật thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi cập nhật About Me: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // Public method để reset dialog khi mở lại
+    public async Task Reset()
+    {
+        aboutMe = null;
+        errorMessage = "";
+        successMessage = "";
+        if (IsVisible)
+        {
+            await LoadAboutMe();
+        }
+    }
+
+    // Handle avatar upload success
+    private void HandleAvatarUpload(string newAvatarUrl)
+    {
+        if (aboutMe != null)
+        {
+            aboutMe.AvatarURL = newAvatarUrl;
+            StateHasChanged();
+        }
+    }
+
+    // Handle remove avatar
+    private void HandleRemoveAvatar()
+    {
+        if (aboutMe != null)
+        {
+            aboutMe.AvatarURL = "";
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .info-section {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .info-section h6 {
+        margin-bottom: 0.75rem;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+
+    .alert-success {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border-left: 4px solid #28a745;
+    }
+
+    .alert-danger {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border-left: 4px solid #dc3545;
+    }
+
+    .alert-warning {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border-left: 4px solid #ffc107;
+    }
+</style>

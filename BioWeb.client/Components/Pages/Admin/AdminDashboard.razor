@@ -1,0 +1,335 @@
+@page "/admin/dashboard"
+@using BioWeb.client.Components
+@using BioWeb.client.Components.Dialogs
+@using BioWeb.client.Services
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<AdminGuard>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h1>
+                    <button class="btn btn-outline-danger" @onclick="Logout">
+                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Projects Management -->
+            <div class="col-md-6 col-lg-4">
+                <div class="admin-card" @onclick="@(() => Navigation.NavigateTo("/admin/projects"))">
+                    <div class="admin-card-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h5>Quản lý Projects</h5>
+                    <p>Thêm, sửa, xóa các dự án</p>
+                </div>
+            </div>
+
+            <!-- Articles Management -->
+            <div class="col-md-6 col-lg-4">
+                <div class="admin-card" @onclick="@(() => Navigation.NavigateTo("/admin/articles"))">
+                    <div class="admin-card-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h5>Quản lý Articles</h5>
+                    <p>Thêm, sửa, xóa bài viết</p>
+                </div>
+            </div>
+
+            <!-- Categories Management -->
+            <div class="col-md-6 col-lg-4">
+                <div class="admin-card" @onclick="@(() => Navigation.NavigateTo("/admin/categories"))">
+                    <div class="admin-card-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h5>Quản lý Categories</h5>
+                    <p>Thêm, sửa, xóa danh mục</p>
+                </div>
+            </div>
+
+            <!-- Site Configuration -->
+            <div class="col-md-6 col-lg-4">
+                <div class="admin-card" @onclick="@(() => Navigation.NavigateTo("/admin/site-config"))">
+                    <div class="admin-card-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h5>Cấu hình Site</h5>
+                    <p>Cập nhật thông tin cá nhân</p>
+                </div>
+            </div>
+
+            <!-- View Public Site -->
+            <div class="col-md-6 col-lg-4">
+                <div class="admin-card" @onclick="@(() => Navigation.NavigateTo("/"))">
+                    <div class="admin-card-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h5>Xem Site Public</h5>
+                    <p>Xem trang web công khai</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h3>
+                <div class="quick-actions">
+                    <div class="action-group">
+                        <h6>About Me & Contact</h6>
+                        <button class="btn btn-outline-primary btn-sm" @onclick="ShowEditAboutMe">
+                            <i class="fas fa-edit me-2"></i>Sửa About Me
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" @onclick="ShowEditContact">
+                            <i class="fas fa-edit me-2"></i>Sửa Contact
+                        </button>
+                    </div>
+
+                    <div class="action-group">
+                        <h6>Projects</h6>
+                        <button class="btn btn-success btn-sm" @onclick="ShowAddProject">
+                            <i class="fas fa-plus me-2"></i>Thêm Project
+                        </button>
+                        <button class="btn btn-warning btn-sm" @onclick="ShowEditProject">
+                            <i class="fas fa-edit me-2"></i>Sửa Project
+                        </button>
+                        <button class="btn btn-danger btn-sm" @onclick="ShowDeleteProject">
+                            <i class="fas fa-trash me-2"></i>Xóa Project
+                        </button>
+                    </div>
+
+                    <div class="action-group">
+                        <h6>Blog - Categories</h6>
+                        <button class="btn btn-success btn-sm" @onclick="ShowAddCategory">
+                            <i class="fas fa-plus me-2"></i>Thêm Category
+                        </button>
+                        <button class="btn btn-warning btn-sm" @onclick="ShowEditCategory">
+                            <i class="fas fa-edit me-2"></i>Sửa Category
+                        </button>
+                        <button class="btn btn-danger btn-sm" @onclick="ShowDeleteCategory">
+                            <i class="fas fa-trash me-2"></i>Xóa Category
+                        </button>
+                    </div>
+
+                    <div class="action-group">
+                        <h6>Blog - Articles</h6>
+                        <button class="btn btn-success btn-sm" @onclick="ShowAddArticle">
+                            <i class="fas fa-plus me-2"></i>Thêm Bài Viết
+                        </button>
+                        <button class="btn btn-warning btn-sm" @onclick="ShowEditArticle">
+                            <i class="fas fa-edit me-2"></i>Sửa Bài Viết
+                        </button>
+                        <button class="btn btn-danger btn-sm" @onclick="ShowDeleteArticle">
+                            <i class="fas fa-trash me-2"></i>Xóa Bài Viết
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</AdminGuard>
+
+<!-- Dialog Components -->
+<AboutMeDialog IsVisible="@showAboutMeDialog" OnClose="@(() => showAboutMeDialog = false)"
+    OnAboutMeChanged="@OnDataChanged" />
+
+<ContactDialog IsVisible="@showContactDialog" OnClose="@(() => showContactDialog = false)"
+    OnContactChanged="@OnDataChanged" />
+
+<ProjectDialogs @ref="projectDialogs" OnProjectChanged="@OnDataChanged" />
+
+<BlogDialogs @ref="blogDialogs" OnBlogChanged="@OnDataChanged" />
+
+@code {
+    private bool showAboutMeDialog = false;
+    private bool showContactDialog = false;
+
+    private ProjectDialogs? projectDialogs;
+    private BlogDialogs? blogDialogs;
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/me/admin/login");
+    }
+
+    // About Me & Contact
+    private void ShowEditAboutMe()
+    {
+        showAboutMeDialog = true;
+    }
+
+    private void ShowEditContact()
+    {
+        showContactDialog = true;
+    }
+
+    // Projects
+    private async Task ShowAddProject()
+    {
+        if (projectDialogs != null)
+            await projectDialogs.ShowAddDialog();
+    }
+
+    private async Task ShowEditProject()
+    {
+        if (projectDialogs != null)
+            await projectDialogs.ShowEditDialog();
+    }
+
+    private async Task ShowDeleteProject()
+    {
+        if (projectDialogs != null)
+            await projectDialogs.ShowDeleteDialog();
+    }
+
+    // Categories
+    private async Task ShowAddCategory()
+    {
+        if (blogDialogs != null)
+            await blogDialogs.ShowAddCategoryDialog();
+    }
+
+    private async Task ShowEditCategory()
+    {
+        if (blogDialogs != null)
+            await blogDialogs.ShowEditCategoryDialog();
+    }
+
+    private async Task ShowDeleteCategory()
+    {
+        if (blogDialogs != null)
+            await blogDialogs.ShowDeleteCategoryDialog();
+    }
+
+    // Articles
+    private async Task ShowAddArticle()
+    {
+        if (blogDialogs != null)
+            await blogDialogs.ShowAddArticleDialog();
+    }
+
+    private async Task ShowEditArticle()
+    {
+        if (blogDialogs != null)
+            await blogDialogs.ShowEditArticleDialog();
+    }
+
+    private async Task ShowDeleteArticle()
+    {
+        if (blogDialogs != null)
+            await blogDialogs.ShowDeleteArticleDialog();
+    }
+
+    private async Task OnDataChanged()
+    {
+        // Refresh data if needed
+        StateHasChanged();
+    }
+}
+
+<style>
+    .admin-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .admin-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .admin-card-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #007bff;
+    }
+
+    .admin-card h5 {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .admin-card p {
+        margin: 0;
+        opacity: 0.8;
+        font-size: 0.9rem;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .action-group {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .action-group:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-group h6 {
+        margin-bottom: 1rem;
+        color: #333;
+        font-weight: 600;
+        border-bottom: 2px solid rgba(0, 123, 255, 0.3);
+        padding-bottom: 0.5rem;
+    }
+
+    .action-group .btn {
+        margin: 0.25rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .action-group .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    @@media (max-width: 768px) {
+        .quick-actions {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .action-group {
+            padding: 1rem;
+        }
+
+        .action-group .btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            margin: 0.2rem;
+        }
+    }
+</style>

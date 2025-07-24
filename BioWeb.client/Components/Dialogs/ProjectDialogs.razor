@@ -1,0 +1,481 @@
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components.Shared
+@inject IApiService ApiService
+
+<!-- Add Project Dialog -->
+<BaseDialog Title="Thêm Project Mới" IsVisible="@showAddDialog" IsLoading="@isLoading" SaveButtonText="Thêm Project"
+    OnClose="@(() => showAddDialog = false)" OnSave="@HandleAddProject">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Tên Project *</label>
+        <input type="text" class="form-control" @bind="newProject.ProjectName" placeholder="Nhập tên project" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Mô tả</label>
+        <textarea class="form-control" rows="3" @bind="newProject.Description"
+            placeholder="Mô tả về project"></textarea>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label class="form-label">GitHub URL</label>
+                <input type="url" class="form-control" @bind="newProject.GitHubURL"
+                    placeholder="https://github.com/..." />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label class="form-label">Project URL</label>
+                <input type="url" class="form-control" @bind="newProject.ProjectURL" placeholder="https://..." />
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group mb-3">
+        <FileUploadComponent UploadEndpoint="/api/upload/project-thumbnail" AcceptedTypes="image/*" MaxSizeInMB="5"
+            CurrentImageUrl="@newProject.ThumbnailURL" Label="Thumbnail"
+            OnUploadSuccess="HandleNewProjectThumbnailUpload" OnRemoveImage="HandleRemoveNewProjectThumbnail" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Technologies</label>
+        <input type="text" class="form-control" @bind="newProject.Technologies"
+            placeholder="React, Node.js, MongoDB..." />
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label class="form-label">Thứ tự hiển thị</label>
+                <input type="number" class="form-control" @bind="newProject.DisplayOrder" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <div class="form-check mt-4">
+                    <input type="checkbox" class="form-check-input" @bind="newProject.IsPublished" id="addPublished" />
+                    <label class="form-check-label" for="addPublished">Xuất bản ngay</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+<!-- Edit Project Dialog -->
+<BaseDialog Title="Sửa Project" IsVisible="@showEditDialog" IsLoading="@isLoading" SaveButtonText="Cập nhật"
+    OnClose="@(() => showEditDialog = false)" OnSave="@HandleEditProject">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Chọn Project để sửa *</label>
+        <select class="form-select" @onchange="OnProjectSelected">
+            <option value="">-- Chọn project --</option>
+            @foreach (var project in projects)
+            {
+                <option value="@project.ProjectID">@project.ProjectName</option>
+            }
+        </select>
+    </div>
+
+    @if (selectedProject != null)
+    {
+        <div class="form-group mb-3">
+            <label class="form-label">Tên Project *</label>
+            <input type="text" class="form-control" @bind="selectedProject.ProjectName" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" rows="3" @bind="selectedProject.Description"></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label class="form-label">GitHub URL</label>
+                    <input type="url" class="form-control" @bind="selectedProject.GitHubURL" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label class="form-label">Project URL</label>
+                    <input type="url" class="form-control" @bind="selectedProject.ProjectURL" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <FileUploadComponent UploadEndpoint="/api/upload/project-thumbnail" AcceptedTypes="image/*" MaxSizeInMB="5"
+                CurrentImageUrl="@selectedProject.ThumbnailURL" Label="Thumbnail"
+                OnUploadSuccess="HandleEditProjectThumbnailUpload" OnRemoveImage="HandleRemoveEditProjectThumbnail" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Technologies</label>
+            <input type="text" class="form-control" @bind="selectedProject.Technologies" />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label class="form-label">Thứ tự hiển thị</label>
+                    <input type="number" class="form-control" @bind="selectedProject.DisplayOrder" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <div class="form-check mt-4">
+                        <input type="checkbox" class="form-check-input" @bind="selectedProject.IsPublished"
+                            id="editPublished" />
+                        <label class="form-check-label" for="editPublished">Xuất bản</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+<!-- Delete Project Dialog -->
+<BaseDialog Title="Xóa Project" IsVisible="@showDeleteDialog" IsLoading="@isLoading" ShowSaveButton="false"
+    ShowDeleteButton="true" OnClose="@(() => showDeleteDialog = false)" OnDelete="@HandleDeleteProject">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Chọn Project để xóa *</label>
+        <select class="form-select" @onchange="OnDeleteProjectSelected">
+            <option value="">-- Chọn project --</option>
+            @foreach (var project in projects)
+            {
+                <option value="@project.ProjectID">@project.ProjectName</option>
+            }
+        </select>
+    </div>
+
+    @if (projectToDelete != null)
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa project "<strong>@projectToDelete.ProjectName</strong>"?
+            <br><small>Hành động này không thể hoàn tác.</small>
+        </div>
+
+        <div class="project-preview">
+            <h6>Thông tin project sẽ bị xóa:</h6>
+            <ul>
+                <li><strong>Tên:</strong> @projectToDelete.ProjectName</li>
+                <li><strong>Mô tả:</strong> @projectToDelete.Description</li>
+                <li><strong>Technologies:</strong> @projectToDelete.Technologies</li>
+            </ul>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+@code {
+    [Parameter] public EventCallback OnProjectChanged { get; set; }
+
+    private bool showAddDialog = false;
+    private bool showEditDialog = false;
+    private bool showDeleteDialog = false;
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    private List<ProjectDto> projects = new();
+    private ProjectDto newProject = new();
+    private ProjectDto? selectedProject = null;
+    private ProjectDto? projectToDelete = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+    }
+
+    private async Task LoadProjects()
+    {
+        try
+        {
+            var response = await ApiService.GetProjectsAsync();
+            if (response.Success && response.Data != null)
+            {
+                projects = response.Data;
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Không thể tải danh sách project";
+                projects = new List<ProjectDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi tải danh sách projects: {ex.Message}";
+            projects = new List<ProjectDto>();
+        }
+    }
+
+    // Public methods để mở dialogs
+    public async Task ShowAddDialog()
+    {
+        newProject = new ProjectDto { IsPublished = true, DisplayOrder = 0 };
+        errorMessage = "";
+        showAddDialog = true;
+        StateHasChanged();
+    }
+
+    public async Task ShowEditDialog()
+    {
+        await LoadProjects();
+        selectedProject = null;
+        errorMessage = "";
+        showEditDialog = true;
+        StateHasChanged();
+    }
+
+    public async Task ShowDeleteDialog()
+    {
+        await LoadProjects();
+        projectToDelete = null;
+        errorMessage = "";
+        showDeleteDialog = true;
+        StateHasChanged();
+    }
+
+    private async Task OnProjectSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int projectId))
+        {
+            try
+            {
+                isLoading = true;
+                var response = await ApiService.GetProjectByIdAsync(projectId);
+                if (response.Success && response.Data != null)
+                {
+                    selectedProject = response.Data;
+                }
+                else
+                {
+                    errorMessage = response.Message ?? "Không thể tải thông tin project";
+                    selectedProject = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Lỗi tải project: {ex.Message}";
+                selectedProject = null;
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+        else
+        {
+            selectedProject = null;
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnDeleteProjectSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int projectId))
+        {
+            projectToDelete = projects.FirstOrDefault(p => p.ProjectID == projectId);
+        }
+        else
+        {
+            projectToDelete = null;
+        }
+    }
+
+    private async Task HandleAddProject()
+    {
+        if (string.IsNullOrWhiteSpace(newProject.ProjectName))
+        {
+            errorMessage = "Tên project là bắt buộc";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.CreateProjectAsync(newProject);
+
+            if (response.Success)
+            {
+                showAddDialog = false;
+                await OnProjectChanged.InvokeAsync();
+
+                // Reset form
+                newProject = new ProjectDto();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Tạo project thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi tạo project: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleEditProject()
+    {
+        if (selectedProject == null)
+        {
+            errorMessage = "Vui lòng chọn project để sửa";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedProject.ProjectName))
+        {
+            errorMessage = "Tên project là bắt buộc";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.UpdateProjectAsync(selectedProject.ProjectID, selectedProject);
+
+            if (response.Success)
+            {
+                showEditDialog = false;
+                await OnProjectChanged.InvokeAsync();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Cập nhật project thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi cập nhật project: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleDeleteProject()
+    {
+        if (projectToDelete == null)
+        {
+            errorMessage = "Vui lòng chọn project để xóa";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.DeleteProjectAsync(projectToDelete.ProjectID);
+
+            if (response.Success)
+            {
+                showDeleteDialog = false;
+                await OnProjectChanged.InvokeAsync();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Xóa project thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi xóa project: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // Handle thumbnail upload for new project
+    private void HandleNewProjectThumbnailUpload(string newThumbnailUrl)
+    {
+        newProject.ThumbnailURL = newThumbnailUrl;
+        StateHasChanged();
+    }
+
+    // Handle remove thumbnail for new project
+    private void HandleRemoveNewProjectThumbnail()
+    {
+        newProject.ThumbnailURL = "";
+        StateHasChanged();
+    }
+
+    // Handle thumbnail upload for edit project
+    private void HandleEditProjectThumbnailUpload(string newThumbnailUrl)
+    {
+        if (selectedProject != null)
+        {
+            selectedProject.ThumbnailURL = newThumbnailUrl;
+            StateHasChanged();
+        }
+    }
+
+    // Handle remove thumbnail for edit project
+    private void HandleRemoveEditProjectThumbnail()
+    {
+        if (selectedProject != null)
+        {
+            selectedProject.ThumbnailURL = "";
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .project-preview {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .project-preview h6 {
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+
+    .project-preview ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .project-preview li {
+        margin-bottom: 0.25rem;
+    }
+</style>

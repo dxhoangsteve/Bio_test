@@ -1,0 +1,305 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using BioWeb.client.Services
+@inject IApiService ApiService
+@inject IJSRuntime JSRuntime
+
+<div class="file-upload-container">
+    <!-- Current Image Preview -->
+    @if (!string.IsNullOrEmpty(CurrentImageUrl))
+    {
+        <div class="current-image-preview mb-3">
+            <label class="form-label">Hình ảnh hiện tại:</label>
+            <div class="image-preview-wrapper">
+                <img src="@CurrentImageUrl" alt="Current image" class="current-image" />
+                <button type="button" class="btn btn-sm btn-outline-danger remove-current" @onclick="RemoveCurrentImage"
+                    title="Xóa hình ảnh hiện tại">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- File Upload Section -->
+    <div class="upload-section">
+        <label class="form-label">@Label</label>
+
+        <!-- File Input -->
+        <div class="file-input-wrapper">
+            <InputFile OnChange="HandleFileSelected" accept="@AcceptedTypes" class="file-input" id="@inputId" />
+            <label for="@inputId" class="file-input-label">
+                <i class="fas fa-cloud-upload-alt me-2"></i>
+                Chọn file hoặc kéo thả vào đây
+            </label>
+        </div>
+
+        <!-- File Info -->
+        @if (selectedFile != null)
+        {
+            <div class="file-info mt-2">
+                <small class="text-muted">
+                    <i class="fas fa-file me-1"></i>
+                    @selectedFile.Name (@FormatFileSize(selectedFile.Size))
+                </small>
+            </div>
+        }
+
+        <!-- Upload Progress -->
+        @if (isUploading)
+        {
+            <div class="upload-progress mt-3">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                        style="width: @(uploadProgress)%">
+                        @uploadProgress%
+                    </div>
+                </div>
+                <small class="text-muted mt-1">Đang upload...</small>
+            </div>
+        }
+
+        <!-- New Image Preview -->
+        @if (!string.IsNullOrEmpty(newImagePreview))
+        {
+            <div class="new-image-preview mt-3">
+                <label class="form-label">Hình ảnh mới:</label>
+                <img src="@newImagePreview" alt="New image preview" class="preview-image" />
+            </div>
+        }
+
+        <!-- Upload Button -->
+        @if (selectedFile != null && !isUploading)
+        {
+            <button type="button" class="btn btn-primary mt-3" @onclick="UploadFile">
+                <i class="fas fa-upload me-2"></i>Upload
+            </button>
+        }
+
+        <!-- Messages -->
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger mt-3">
+                <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success mt-3">
+                <i class="fas fa-check-circle me-2"></i>@successMessage
+            </div>
+        }
+    </div>
+
+    <!-- Help Text -->
+    <small class="form-text text-muted">
+        Định dạng được hỗ trợ: @AcceptedTypes. Tối đa @MaxSizeInMB MB.
+    </small>
+</div>
+
+@code {
+    [Parameter] public string UploadEndpoint { get; set; } = "";
+    [Parameter] public string AcceptedTypes { get; set; } = "image/*";
+    [Parameter] public int MaxSizeInMB { get; set; } = 5;
+    [Parameter] public string CurrentImageUrl { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "Chọn hình ảnh";
+    [Parameter] public EventCallback<string> OnUploadSuccess { get; set; }
+    [Parameter] public EventCallback OnRemoveImage { get; set; }
+
+    private IBrowserFile? selectedFile;
+    private string newImagePreview = "";
+    private string errorMessage = "";
+    private string successMessage = "";
+    private bool isUploading = false;
+    private int uploadProgress = 0;
+    private string inputId = Guid.NewGuid().ToString();
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        errorMessage = "";
+        successMessage = "";
+        newImagePreview = "";
+
+        if (selectedFile != null)
+        {
+            // Validate file size
+            if (selectedFile.Size > MaxSizeInMB * 1024 * 1024)
+            {
+                errorMessage = $"File quá lớn. Tối đa {MaxSizeInMB} MB.";
+                selectedFile = null;
+                return;
+            }
+
+            // Create preview for images
+            if (selectedFile.ContentType.StartsWith("image/"))
+            {
+                try
+                {
+                    var buffer = new byte[selectedFile.Size];
+                    await selectedFile.OpenReadStream(MaxSizeInMB * 1024 * 1024).ReadAsync(buffer);
+                    var base64 = Convert.ToBase64String(buffer);
+                    newImagePreview = $"data:{selectedFile.ContentType};base64,{base64}";
+                }
+                catch (Exception ex)
+                {
+                    errorMessage = "Không thể tạo preview hình ảnh.";
+                }
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task UploadFile()
+    {
+        if (selectedFile == null) return;
+
+        isUploading = true;
+        uploadProgress = 0;
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+            // Simulate progress
+            for (int i = 0; i <= 90; i += 10)
+            {
+                uploadProgress = i;
+                StateHasChanged();
+                await Task.Delay(100);
+            }
+
+            // Create form data
+            using var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(selectedFile.OpenReadStream(MaxSizeInMB * 1024 * 1024));
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedFile.ContentType);
+            content.Add(fileContent, "file", selectedFile.Name);
+
+            // Upload file
+            var response = await ApiService.UploadFileAsync(UploadEndpoint, content);
+
+            uploadProgress = 100;
+            StateHasChanged();
+
+            if (response.Success && response.Data != null)
+            {
+                successMessage = "Upload thành công!";
+                await OnUploadSuccess.InvokeAsync(response.Data.Url);
+
+                // Clear form
+                selectedFile = null;
+                newImagePreview = "";
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Upload thất bại.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Đã xảy ra lỗi khi upload file.";
+        }
+        finally
+        {
+            isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveCurrentImage()
+    {
+        await OnRemoveImage.InvokeAsync();
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024:F1} KB";
+        return $"{bytes / (1024 * 1024):F1} MB";
+    }
+}
+
+<style>
+    .file-upload-container {
+        margin-bottom: 1rem;
+    }
+
+    .current-image-preview {
+        position: relative;
+    }
+
+    .image-preview-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .current-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+        object-fit: cover;
+    }
+
+    .remove-current {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .file-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .file-input-label {
+        display: block;
+        padding: 2rem;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    .file-input-label:hover {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+
+    .preview-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        border: 2px solid #28a745;
+        object-fit: cover;
+    }
+
+    .upload-progress .progress {
+        height: 8px;
+    }
+
+    .file-info {
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border-left: 4px solid #007bff;
+    }
+</style>

@@ -1,5 +1,5 @@
 @page "/blog"
-@using BioWeb.client.Models
+@using BioWeb.Shared.Models.DTOs
 @using BioWeb.client.Services
 @inject IApiService ApiService
 @inject IJSRuntime JSRuntime
@@ -26,11 +26,6 @@
         </div>
 
         <div class="article-content">
-            @if (!string.IsNullOrEmpty(selectedArticle.ThumbnailURL))
-            {
-                <img src="@selectedArticle.ThumbnailURL" alt="@selectedArticle.Title" class="article-thumbnail mb-4" />
-            }
-
             <div class="article-body">
                 @((MarkupString)selectedArticle.Content)
             </div>
@@ -42,9 +37,6 @@
             <div class="share-buttons">
                 <button class="btn btn-facebook" @onclick="() => ShareOnFacebook(selectedArticle)">
                     <i class="fab fa-facebook-f me-2"></i>Facebook
-                </button>
-                <button class="btn btn-instagram" @onclick="() => ShareOnInstagram(selectedArticle)">
-                    <i class="fab fa-instagram me-2"></i>Instagram
                 </button>
             </div>
         </div>
@@ -85,12 +77,6 @@ else
                 @foreach (var article in articles)
                 {
                     <div class="article-card" @onclick="() => ViewArticle(article)">
-                        @if (!string.IsNullOrEmpty(article.ThumbnailURL))
-                        {
-                            <div class="article-card-image">
-                                <img src="@article.ThumbnailURL" alt="@article.Title" />
-                            </div>
-                        }
                         <div class="article-card-content">
                             <div class="article-card-meta">
                                 <span class="category-tag">@article.CategoryName</span>
@@ -114,11 +100,11 @@ else
 }
 
 @code {
-    private List<ArticleDto> articles = new();
+    private List<BioWeb.Shared.Models.DTOs.ArticleDto> articles = new();
     private bool isLoading = true;
     private bool showArticleDetail = false;
 
-    private ArticleDto? selectedArticle = null;
+    private BioWeb.Shared.Models.DTOs.ArticleDto? selectedArticle = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -151,7 +137,7 @@ else
 
 
 
-    private async Task ViewArticle(ArticleDto article)
+    private async Task ViewArticle(BioWeb.Shared.Models.DTOs.ArticleDto article)
     {
         selectedArticle = article;
         showArticleDetail = true;
@@ -178,7 +164,7 @@ else
         return plainText.Length > 150 ? plainText.Substring(0, 150) + "..." : plainText;
     }
 
-    private async Task ShareOnFacebook(ArticleDto article)
+    private async Task ShareOnFacebook(BioWeb.Shared.Models.DTOs.ArticleDto article)
     {
         try
         {
@@ -195,22 +181,7 @@ else
         }
     }
 
-    private async Task ShareOnInstagram(ArticleDto article)
-    {
-        try
-        {
-            var baseUrl = await JSRuntime.InvokeAsync<string>("eval", "window.location.origin");
-            var articleUrl = $"{baseUrl}/blog?article={article.ArticleID}";
-            var shareText = $"📖 {article.Title}\n\n{GetExcerpt(article.Content)}\n\n🔗 {articleUrl}";
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", shareText);
-            await JSRuntime.InvokeVoidAsync("alert", "Nội dung đã được sao chép! Bạn có thể dán vào Instagram Story hoặc Post.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Share error: {ex.Message}");
-            await JSRuntime.InvokeVoidAsync("alert", "Không thể sao chép link. Vui lòng thử lại sau.");
-        }
-    }
+
 }
 
 <style>
@@ -268,22 +239,7 @@ else
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
-    .article-card-image {
-        height: 200px;
-        overflow: hidden;
-        position: relative;
-    }
 
-    .article-card-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    .article-card:hover .article-card-image img {
-        transform: scale(1.05);
-    }
 
     .article-card-content {
         padding: 20px;
@@ -447,16 +403,7 @@ else
         color: white;
     }
 
-    .btn-instagram {
-        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-        border: none;
-        color: white;
-    }
 
-    .btn-instagram:hover {
-        opacity: 0.9;
-        color: white;
-    }
 
     /* Responsive Design */
     @@media (max-width: 768px) {

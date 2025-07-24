@@ -1,0 +1,872 @@
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components.Shared
+@inject IApiService ApiService
+
+<!-- Add Category Dialog -->
+<BaseDialog Title="Thêm Category Mới" IsVisible="@showAddCategoryDialog" IsLoading="@isLoading"
+    SaveButtonText="Thêm Category" OnClose="@(() => showAddCategoryDialog = false)" OnSave="@HandleAddCategory">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Tên Category *</label>
+        <input type="text" class="form-control" @bind="newCategory.CategoryName"
+            placeholder="Ví dụ: Technology, Lifestyle..." />
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Mô tả</label>
+        <textarea class="form-control" rows="3" @bind="newCategory.Description"
+            placeholder="Mô tả ngắn về category này..."></textarea>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+<!-- Edit Category Dialog -->
+<BaseDialog Title="Sửa Category" IsVisible="@showEditCategoryDialog" IsLoading="@isLoading" SaveButtonText="Cập nhật"
+    OnClose="@(() => showEditCategoryDialog = false)" OnSave="@HandleEditCategory">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Chọn Category để sửa *</label>
+        <select class="form-select" @onchange="OnCategorySelected">
+            <option value="">-- Chọn category --</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.CategoryID">@category.CategoryName</option>
+            }
+        </select>
+    </div>
+
+    @if (selectedCategory != null)
+    {
+        <div class="form-group mb-3">
+            <label class="form-label">Tên Category *</label>
+            <input type="text" class="form-control" @bind="selectedCategory.CategoryName" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" rows="3" @bind="selectedCategory.Description"></textarea>
+        </div>
+
+        <div class="info-section">
+            <h6><i class="fas fa-info-circle me-2"></i>Thông tin Category</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <strong>ID:</strong> @selectedCategory.CategoryID
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <strong>Số bài viết:</strong> @selectedCategory.Articles?.Count() ?? 0
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+<!-- Delete Category Dialog -->
+<BaseDialog Title="Xóa Category" IsVisible="@showDeleteCategoryDialog" IsLoading="@isLoading" ShowSaveButton="false"
+    ShowDeleteButton="true" OnClose="@(() => showDeleteCategoryDialog = false)" OnDelete="@HandleDeleteCategory">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Chọn Category để xóa *</label>
+        <select class="form-select" @onchange="OnDeleteCategorySelected">
+            <option value="">-- Chọn category --</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.CategoryID">@category.CategoryName</option>
+            }
+        </select>
+    </div>
+
+    @if (categoryToDelete != null)
+    {
+        @if (categoryToDelete.Articles?.Any() == true)
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Không thể xóa!</strong> Category này đang có <strong>@categoryToDelete.Articles.Count()</strong> bài
+                viết.
+                <br><small>Vui lòng xóa hoặc chuyển các bài viết sang category khác trước.</small>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa category "<strong>@categoryToDelete.CategoryName</strong>"?
+                <br><small>Hành động này không thể hoàn tác.</small>
+            </div>
+        }
+
+        <div class="category-preview">
+            <h6>Thông tin category:</h6>
+            <ul>
+                <li><strong>Tên:</strong> @categoryToDelete.CategoryName</li>
+                <li><strong>Mô tả:</strong> @(categoryToDelete.Description ?? "Không có mô tả")</li>
+                <li><strong>Số bài viết:</strong> @(categoryToDelete.Articles?.Count() ?? 0)</li>
+            </ul>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+<!-- Add Article Dialog -->
+<BaseDialog Title="Thêm Bài Viết Mới" IsVisible="@showAddArticleDialog" IsLoading="@isLoading"
+    SaveButtonText="Thêm Bài Viết" OnClose="@(() => showAddArticleDialog = false)" OnSave="@HandleAddArticle">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Tiêu đề *</label>
+        <input type="text" class="form-control" @bind="newArticle.Title" placeholder="Nhập tiêu đề bài viết" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Category *</label>
+        <select class="form-select" @bind="newArticle.CategoryID">
+            <option value="0">-- Chọn category --</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.CategoryID">@category.CategoryName</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group mb-3">
+        <FileUploadComponent UploadEndpoint="/api/upload/article-thumbnail" AcceptedTypes="image/*" MaxSizeInMB="5"
+            CurrentImageUrl="@newArticle.ThumbnailURL" Label="Thumbnail"
+            OnUploadSuccess="HandleNewArticleThumbnailUpload" OnRemoveImage="HandleRemoveNewArticleThumbnail" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Nội dung *</label>
+        <textarea class="form-control" rows="8" @bind="newArticle.Content"
+            placeholder="Viết nội dung bài viết..."></textarea>
+        <small class="form-text text-muted">Hỗ trợ Markdown và HTML</small>
+    </div>
+
+    <div class="form-group mb-3">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" @bind="newArticle.IsPublished" id="addArticlePublished" />
+            <label class="form-check-label" for="addArticlePublished">Xuất bản ngay</label>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+<!-- Edit Article Dialog -->
+<BaseDialog Title="Sửa Bài Viết" IsVisible="@showEditArticleDialog" IsLoading="@isLoading" SaveButtonText="Cập nhật"
+    OnClose="@(() => showEditArticleDialog = false)" OnSave="@HandleEditArticle">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Chọn Bài Viết để sửa *</label>
+        <select class="form-select" @onchange="OnArticleSelected">
+            <option value="">-- Chọn bài viết --</option>
+            @foreach (var article in articles)
+            {
+                <option value="@article.ArticleID">@article.Title</option>
+            }
+        </select>
+    </div>
+
+    @if (selectedArticle != null)
+    {
+        <div class="form-group mb-3">
+            <label class="form-label">Tiêu đề *</label>
+            <input type="text" class="form-control" @bind="selectedArticle.Title" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Category *</label>
+            <select class="form-select" @bind="selectedArticle.CategoryID">
+                <option value="0">-- Chọn category --</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category.CategoryID">@category.CategoryName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <FileUploadComponent UploadEndpoint="/api/upload/article-thumbnail" AcceptedTypes="image/*" MaxSizeInMB="5"
+                CurrentImageUrl="@selectedArticle.ThumbnailURL" Label="Thumbnail"
+                OnUploadSuccess="HandleEditArticleThumbnailUpload" OnRemoveImage="HandleRemoveEditArticleThumbnail" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Nội dung *</label>
+            <textarea class="form-control" rows="8" @bind="selectedArticle.Content"></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" @bind="selectedArticle.IsPublished"
+                    id="editArticlePublished" />
+                <label class="form-check-label" for="editArticlePublished">Xuất bản</label>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h6><i class="fas fa-info-circle me-2"></i>Thông tin Bài Viết</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <strong>ID:</strong> @selectedArticle.ArticleID
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <strong>Tạo lúc:</strong> @selectedArticle.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+<!-- Delete Article Dialog -->
+<BaseDialog Title="Xóa Bài Viết" IsVisible="@showDeleteArticleDialog" IsLoading="@isLoading" ShowSaveButton="false"
+    ShowDeleteButton="true" OnClose="@(() => showDeleteArticleDialog = false)" OnDelete="@HandleDeleteArticle">
+
+    <div class="form-group mb-3">
+        <label class="form-label">Chọn Bài Viết để xóa *</label>
+        <select class="form-select" @onchange="OnDeleteArticleSelected">
+            <option value="">-- Chọn bài viết --</option>
+            @foreach (var article in articles)
+            {
+                <option value="@article.ArticleID">@article.Title</option>
+            }
+        </select>
+    </div>
+
+    @if (articleToDelete != null)
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa bài viết "<strong>@articleToDelete.Title</strong>"?
+            <br><small>Hành động này không thể hoàn tác.</small>
+        </div>
+
+        <div class="article-preview">
+            <h6>Thông tin bài viết sẽ bị xóa:</h6>
+            <ul>
+                <li><strong>Tiêu đề:</strong> @articleToDelete.Title</li>
+                <li><strong>Category:</strong> @articleToDelete.CategoryName</li>
+                <li><strong>Trạng thái:</strong> @(articleToDelete.IsPublished ? "Đã xuất bản" : "Nháp")</li>
+                <li><strong>Tạo lúc:</strong> @articleToDelete.CreatedAt.ToString("dd/MM/yyyy HH:mm")</li>
+            </ul>
+
+            <div class="content-preview">
+                <strong>Nội dung (100 ký tự đầu):</strong>
+                <p class="text-muted">@(articleToDelete.Content?.Length > 100 ? articleToDelete.Content.Substring(0, 100) +
+                                    "..." : articleToDelete.Content)</p>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+</BaseDialog>
+
+@code {
+    [Parameter] public EventCallback OnBlogChanged { get; set; }
+
+    // Dialog visibility states
+    private bool showAddCategoryDialog = false;
+    private bool showEditCategoryDialog = false;
+    private bool showDeleteCategoryDialog = false;
+    private bool showAddArticleDialog = false;
+    private bool showEditArticleDialog = false;
+    private bool showDeleteArticleDialog = false;
+
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    // Data
+    private List<CategoryDto> categories = new();
+    private List<ArticleDto> articles = new();
+
+    // Category objects
+    private CategoryDto newCategory = new();
+    private CategoryDto? selectedCategory = null;
+    private CategoryDto? categoryToDelete = null;
+
+    // Article objects
+    private ArticleDto newArticle = new();
+    private ArticleDto? selectedArticle = null;
+    private ArticleDto? articleToDelete = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            // Load categories
+            var categoriesResponse = await ApiService.GetCategoriesForAdminAsync();
+            if (categoriesResponse.Success && categoriesResponse.Data != null)
+            {
+                categories = categoriesResponse.Data;
+            }
+            else
+            {
+                categories = new List<CategoryDto>();
+            }
+
+            // Load articles
+            var articlesResponse = await ApiService.GetArticlesForAdminAsync();
+            if (articlesResponse.Success && articlesResponse.Data != null)
+            {
+                articles = articlesResponse.Data;
+            }
+            else
+            {
+                articles = new List<ArticleDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi tải dữ liệu: {ex.Message}";
+            categories = new List<CategoryDto>();
+            articles = new List<ArticleDto>();
+        }
+    }
+
+    // Public methods để mở dialogs
+    public async Task ShowAddCategoryDialog()
+    {
+        newCategory = new CategoryDto();
+        errorMessage = "";
+        showAddCategoryDialog = true;
+        StateHasChanged();
+    }
+
+    public async Task ShowEditCategoryDialog()
+    {
+        await LoadData();
+        selectedCategory = null;
+        errorMessage = "";
+        showEditCategoryDialog = true;
+        StateHasChanged();
+    }
+
+    public async Task ShowDeleteCategoryDialog()
+    {
+        await LoadData();
+        categoryToDelete = null;
+        errorMessage = "";
+        showDeleteCategoryDialog = true;
+        StateHasChanged();
+    }
+
+    public async Task ShowAddArticleDialog()
+    {
+        await LoadData();
+        newArticle = new ArticleDto { IsPublished = true };
+        errorMessage = "";
+        showAddArticleDialog = true;
+        StateHasChanged();
+    }
+
+    public async Task ShowEditArticleDialog()
+    {
+        await LoadData();
+        selectedArticle = null;
+        errorMessage = "";
+        showEditArticleDialog = true;
+        StateHasChanged();
+    }
+
+    public async Task ShowDeleteArticleDialog()
+    {
+        await LoadData();
+        articleToDelete = null;
+        errorMessage = "";
+        showDeleteArticleDialog = true;
+        StateHasChanged();
+    }
+
+    // Event handlers
+    private async Task OnCategorySelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int categoryId))
+        {
+            selectedCategory = categories.FirstOrDefault(c => c.CategoryID == categoryId);
+        }
+        else
+        {
+            selectedCategory = null;
+        }
+    }
+
+    private async Task OnDeleteCategorySelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int categoryId))
+        {
+            categoryToDelete = categories.FirstOrDefault(c => c.CategoryID == categoryId);
+        }
+        else
+        {
+            categoryToDelete = null;
+        }
+    }
+
+    private async Task OnArticleSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int articleId))
+        {
+            try
+            {
+                isLoading = true;
+                var response = await ApiService.GetArticleForAdminAsync(articleId);
+                if (response.Success && response.Data != null)
+                {
+                    selectedArticle = response.Data;
+                }
+                else
+                {
+                    errorMessage = response.Message ?? "Không thể tải thông tin bài viết";
+                    selectedArticle = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Lỗi tải bài viết: {ex.Message}";
+                selectedArticle = null;
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+        else
+        {
+            selectedArticle = null;
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnDeleteArticleSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int articleId))
+        {
+            articleToDelete = articles.FirstOrDefault(a => a.ArticleID == articleId);
+        }
+        else
+        {
+            articleToDelete = null;
+        }
+    }
+
+    // CRUD handlers
+    private async Task HandleAddCategory()
+    {
+        if (string.IsNullOrWhiteSpace(newCategory.CategoryName))
+        {
+            errorMessage = "Tên category là bắt buộc";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.CreateCategoryAsync(newCategory);
+
+            if (response.Success)
+            {
+                showAddCategoryDialog = false;
+                await OnBlogChanged.InvokeAsync();
+
+                // Reset form
+                newCategory = new CategoryDto();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Tạo category thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi tạo category: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleEditCategory()
+    {
+        if (selectedCategory == null)
+        {
+            errorMessage = "Vui lòng chọn category để sửa";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedCategory.CategoryName))
+        {
+            errorMessage = "Tên category là bắt buộc";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.UpdateCategoryAsync(selectedCategory.CategoryID, selectedCategory);
+
+            if (response.Success)
+            {
+                showEditCategoryDialog = false;
+                await OnBlogChanged.InvokeAsync();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Cập nhật category thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi cập nhật category: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleDeleteCategory()
+    {
+        if (categoryToDelete == null)
+        {
+            errorMessage = "Vui lòng chọn category để xóa";
+            return;
+        }
+
+        if (categoryToDelete.Articles?.Any() == true)
+        {
+            errorMessage = "Không thể xóa category đang có bài viết";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.DeleteCategoryAsync(categoryToDelete.CategoryID);
+
+            if (response.Success)
+            {
+                showDeleteCategoryDialog = false;
+                await OnBlogChanged.InvokeAsync();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Xóa category thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi xóa category: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleAddArticle()
+    {
+        if (string.IsNullOrWhiteSpace(newArticle.Title))
+        {
+            errorMessage = "Tiêu đề bài viết là bắt buộc";
+            return;
+        }
+
+        if (newArticle.CategoryID <= 0)
+        {
+            errorMessage = "Vui lòng chọn category";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newArticle.Content))
+        {
+            errorMessage = "Nội dung bài viết là bắt buộc";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.CreateArticleAsync(newArticle);
+
+            if (response.Success)
+            {
+                showAddArticleDialog = false;
+                await OnBlogChanged.InvokeAsync();
+
+                // Reset form
+                newArticle = new ArticleDto();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Tạo bài viết thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi tạo bài viết: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleEditArticle()
+    {
+        if (selectedArticle == null)
+        {
+            errorMessage = "Vui lòng chọn bài viết để sửa";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedArticle.Title))
+        {
+            errorMessage = "Tiêu đề bài viết là bắt buộc";
+            return;
+        }
+
+        if (selectedArticle.CategoryID <= 0)
+        {
+            errorMessage = "Vui lòng chọn category";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedArticle.Content))
+        {
+            errorMessage = "Nội dung bài viết là bắt buộc";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.UpdateArticleAsync(selectedArticle.ArticleID, selectedArticle);
+
+            if (response.Success)
+            {
+                showEditArticleDialog = false;
+                await OnBlogChanged.InvokeAsync();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Cập nhật bài viết thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi cập nhật bài viết: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleDeleteArticle()
+    {
+        if (articleToDelete == null)
+        {
+            errorMessage = "Vui lòng chọn bài viết để xóa";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await ApiService.DeleteArticleAsync(articleToDelete.ArticleID);
+
+            if (response.Success)
+            {
+                showDeleteArticleDialog = false;
+                await OnBlogChanged.InvokeAsync();
+            }
+            else
+            {
+                errorMessage = response.Message ?? "Xóa bài viết thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi xóa bài viết: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // Handle thumbnail upload for new article
+    private void HandleNewArticleThumbnailUpload(string newThumbnailUrl)
+    {
+        newArticle.ThumbnailURL = newThumbnailUrl;
+        StateHasChanged();
+    }
+
+    // Handle remove thumbnail for new article
+    private void HandleRemoveNewArticleThumbnail()
+    {
+        newArticle.ThumbnailURL = "";
+        StateHasChanged();
+    }
+
+    // Handle thumbnail upload for edit article
+    private void HandleEditArticleThumbnailUpload(string newThumbnailUrl)
+    {
+        if (selectedArticle != null)
+        {
+            selectedArticle.ThumbnailURL = newThumbnailUrl;
+            StateHasChanged();
+        }
+    }
+
+    // Handle remove thumbnail for edit article
+    private void HandleRemoveEditArticleThumbnail()
+    {
+        if (selectedArticle != null)
+        {
+            selectedArticle.ThumbnailURL = "";
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .info-section {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .info-section h6 {
+        margin-bottom: 0.75rem;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .category-preview,
+    .article-preview {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .category-preview h6,
+    .article-preview h6 {
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+
+    .category-preview ul,
+    .article-preview ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .category-preview li,
+    .article-preview li {
+        margin-bottom: 0.25rem;
+    }
+
+    .content-preview {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .content-preview p {
+        background: rgba(0, 0, 0, 0.1);
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        margin: 0.5rem 0 0 0;
+    }
+
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+
+    .alert-success {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border-left: 4px solid #28a745;
+    }
+
+    .alert-danger {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border-left: 4px solid #dc3545;
+    }
+
+    .alert-warning {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border-left: 4px solid #ffc107;
+    }
+</style>

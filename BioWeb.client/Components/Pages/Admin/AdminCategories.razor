@@ -1,0 +1,371 @@
+@page "/admin/categories"
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Admin - Quản lý Categories</PageTitle>
+
+<AdminGuard>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1><i class="fas fa-tags me-2"></i>Quản lý Categories</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="/admin/dashboard">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item active">Categories</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div>
+                        <button class="btn btn-success me-2" @onclick="ShowAddModal">
+                            <i class="fas fa-plus me-2"></i>Thêm Category
+                        </button>
+                        <button class="btn btn-outline-secondary"
+                            @onclick="@(() => Navigation.NavigateTo("/admin/dashboard"))">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="admin-controls-panel">
+                    <h5><i class="fas fa-tools me-2"></i>Công cụ Admin</h5>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary" @onclick="RefreshData">
+                            <i class="fas fa-sync-alt me-2"></i>Làm mới
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories List -->
+        <div class="row">
+            <div class="col-12">
+                @if (isLoading)
+                {
+                    <div class="text-center p-4">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Đang tải categories...</p>
+                    </div>
+                }
+                else if (categories.Any())
+                {
+                    <div class="row g-4">
+                        @foreach (var category in categories)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="category-admin-card">
+                                    <!-- Admin Controls trên card -->
+                                    <div class="admin-controls-overlay">
+                                        <button class="btn btn-sm btn-warning" @onclick="() => EditCategory(category)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCategory(category)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Category Content -->
+                                    <div class="category-content">
+                                        <h5>@category.CategoryName</h5>
+                                        @if (!string.IsNullOrEmpty(category.Description))
+                                        {
+                                            <p class="text-muted">@category.Description</p>
+                                        }
+                                        <div class="category-meta">
+                                            <small class="text-muted">ID: @category.CategoryID</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-5">
+                        <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                        <h4>Chưa có categories nào</h4>
+                        <p class="text-muted">Hãy thêm category đầu tiên của bạn!</p>
+                        <button class="btn btn-primary" @onclick="ShowAddModal">
+                            <i class="fas fa-plus me-2"></i>Thêm Category
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    @if (showModal)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-@(isEditMode ? "edit" : "plus") me-2"></i>
+                            @(isEditMode ? "Sửa Category" : "Thêm Category")
+                        </h5>
+                        <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="currentCategory" OnValidSubmit="SaveCategory">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Tên Category *</label>
+                                <InputText @bind-Value="currentCategory.CategoryName" class="form-control" 
+                                    placeholder="Nhập tên category" />
+                                <ValidationMessage For="() => currentCategory.CategoryName" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Mô tả</label>
+                                <InputTextArea @bind-Value="currentCategory.Description" class="form-control" rows="3" 
+                                    placeholder="Nhập mô tả cho category (tùy chọn)" />
+                                <ValidationMessage For="() => currentCategory.Description" />
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Hủy</button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                    }
+                                    @(isEditMode ? "Cập nhật" : "Thêm mới")
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</AdminGuard>
+
+@code {
+    private List<CategoryDto> categories = new();
+    private bool isLoading = true;
+    private bool showModal = false;
+    private bool isEditMode = false;
+    private bool isSaving = false;
+    private CategoryDto currentCategory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        isLoading = true;
+        var response = await ApiService.GetCategoriesForAdminAsync();
+        if (response.Success && response.Data != null)
+        {
+            categories = response.Data;
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadCategories();
+    }
+
+    private void ShowAddModal()
+    {
+        currentCategory = new CategoryDto();
+        isEditMode = false;
+        showModal = true;
+    }
+
+    private void EditCategory(CategoryDto category)
+    {
+        currentCategory = new CategoryDto
+        {
+            CategoryID = category.CategoryID,
+            CategoryName = category.CategoryName,
+            Description = category.Description
+        };
+        isEditMode = true;
+        showModal = true;
+    }
+
+    private async Task DeleteCategory(CategoryDto category)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Bạn có chắc muốn xóa category '{category.CategoryName}'?\n\nLưu ý: Nếu có bài viết đang sử dụng category này thì không thể xóa.");
+        
+        if (confirmed)
+        {
+            var response = await ApiService.DeleteCategoryAsync(category.CategoryID);
+            if (response.Success)
+            {
+                await LoadCategories();
+                await JSRuntime.InvokeVoidAsync("alert", "Xóa category thành công!");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Không thể xóa category: {response.Message}");
+            }
+        }
+    }
+
+    private async Task SaveCategory()
+    {
+        if (string.IsNullOrWhiteSpace(currentCategory.CategoryName))
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Vui lòng nhập tên category!");
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            if (isEditMode)
+            {
+                var response = await ApiService.UpdateCategoryAsync(currentCategory.CategoryID, currentCategory);
+                if (response.Success)
+                {
+                    await LoadCategories();
+                    CloseModal();
+                    await JSRuntime.InvokeVoidAsync("alert", "Cập nhật category thành công!");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"Cập nhật thất bại: {response.Message}");
+                }
+            }
+            else
+            {
+                var response = await ApiService.CreateCategoryAsync(currentCategory);
+                if (response.Success)
+                {
+                    await LoadCategories();
+                    CloseModal();
+                    await JSRuntime.InvokeVoidAsync("alert", "Thêm category thành công!");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"Thêm thất bại: {response.Message}");
+                }
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        currentCategory = new();
+        isEditMode = false;
+    }
+}
+
+<style>
+    .admin-controls-panel {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+
+    .category-admin-card {
+        position: relative;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        min-height: 150px;
+    }
+
+    .category-admin-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .admin-controls-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .category-admin-card:hover .admin-controls-overlay {
+        opacity: 1;
+    }
+
+    .category-content h5 {
+        color: white;
+        margin-bottom: 1rem;
+    }
+
+    .category-content p {
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 1rem;
+    }
+
+    .category-meta {
+        margin-top: auto;
+    }
+
+    .modal-content {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control, .form-select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background: rgba(255, 255, 255, 1);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    @@media (max-width: 768px) {
+        .category-admin-card {
+            min-height: 120px;
+        }
+    }
+</style>

@@ -1,5 +1,5 @@
 @page "/projects"
-@using BioWeb.client.Models
+@using BioWeb.Shared.Models.DTOs
 @using BioWeb.client.Services
 @using BioWeb.client.Components
 @inject IApiService ApiService
@@ -9,9 +9,7 @@
 <PageTitle>My Projects - Bio Website</PageTitle>
 
 <!-- Server Status Component -->
-<ServerStatusComponent IsServerDown="@isServerDown"
-                      ErrorMessage="@serverErrorMessage"
-                      OnRetry="@HandleRetry" />
+<ServerStatusComponent IsServerDown="@isServerDown" ErrorMessage="@serverErrorMessage" OnRetry="@HandleRetry" />
 
 @if (!isServerDown)
 {
@@ -31,9 +29,7 @@
             <div class="col-lg-4 col-md-12 mb-4">
                 @if (featuredProject != null && !string.IsNullOrEmpty(featuredProject.ThumbnailURL))
                 {
-                    <img src="@featuredProject.ThumbnailURL"
-                         alt="@featuredProject.ProjectName"
-                         class="project-image img-fluid" />
+                    <img src="@featuredProject.ThumbnailURL" alt="@featuredProject.ProjectName" class="project-image img-fluid" />
                 }
                 else
                 {
@@ -75,17 +71,13 @@
                     <div class="d-flex justify-content-end mb-4 gap-3">
                         @if (!string.IsNullOrEmpty(featuredProject.ProjectURL))
                         {
-                            <a href="@featuredProject.ProjectURL"
-                               target="_blank"
-                               class="gradient-button">
+                            <a href="@featuredProject.ProjectURL" target="_blank" class="gradient-button">
                                 <i class="fas fa-external-link-alt me-2"></i>Xem dự án
                             </a>
                         }
                         @if (!string.IsNullOrEmpty(featuredProject.GitHubURL))
                         {
-                            <a href="@featuredProject.GitHubURL"
-                               target="_blank"
-                               class="gradient-button">
+                            <a href="@featuredProject.GitHubURL" target="_blank" class="gradient-button">
                                 <i class="fab fa-github me-2"></i>Xem GitHub
                             </a>
                         }
@@ -112,8 +104,7 @@
                     {
                         <div class="col-lg-6 col-md-12 mb-4">
                             <div class="project-card @(project.ProjectID == featuredProject?.ProjectID ? "active" : "")"
-                                 @onclick="() => SelectProject(project)"
-                                 style="cursor: pointer;">
+                                @onclick="() => SelectProject(project)" style="cursor: pointer;">
                                 <div class="project-card-image">
                                     @if (!string.IsNullOrEmpty(project.ThumbnailURL))
                                     {
@@ -132,17 +123,15 @@
                                     <div class="project-card-actions">
                                         @if (!string.IsNullOrEmpty(project.ProjectURL))
                                         {
-                                            <a href="@project.ProjectURL" target="_blank"
-                                               class="btn btn-sm btn-primary"
-                                               @onclick:stopPropagation="true">
+                                            <a href="@project.ProjectURL" target="_blank" class="btn btn-sm btn-primary"
+                                                @onclick:stopPropagation="true">
                                                 <i class="fas fa-external-link-alt"></i>
                                             </a>
                                         }
                                         @if (!string.IsNullOrEmpty(project.GitHubURL))
                                         {
-                                            <a href="@project.GitHubURL" target="_blank"
-                                               class="btn btn-sm btn-secondary"
-                                               @onclick:stopPropagation="true">
+                                            <a href="@project.GitHubURL" target="_blank" class="btn btn-sm btn-secondary"
+                                                @onclick:stopPropagation="true">
                                                 <i class="fab fa-github"></i>
                                             </a>
                                         }
