@@ -28,7 +28,13 @@ namespace BioWeb.client.Services
             try
             {
                 var token = await GetTokenAsync();
-                return !string.IsNullOrEmpty(token);
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false;
+                }
+
+                // Validate token với server
+                return await _apiService.ValidateTokenAsync(token);
             }
             catch
             {

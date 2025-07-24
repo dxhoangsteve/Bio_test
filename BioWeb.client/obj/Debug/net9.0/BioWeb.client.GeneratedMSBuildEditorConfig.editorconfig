@@ -28,12 +28,60 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/AdminGuard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BZG1pbkd1YXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Dialogs/AboutMeDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EaWFsb2dzL0Fib3V0TWVEaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Dialogs/BaseDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EaWFsb2dzL0Jhc2VEaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Dialogs/BlogDialogs.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EaWFsb2dzL0Jsb2dEaWFsb2dzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Dialogs/ContactDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EaWFsb2dzL0NvbnRhY3REaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Dialogs/ProjectDialogs.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EaWFsb2dzL1Byb2plY3REaWFsb2dzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/AboutMe.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BYm91dE1lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Admin/AdminArticles.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BZG1pbi9BZG1pbkFydGljbGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Admin/AdminCategories.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BZG1pbi9BZG1pbkNhdGVnb3JpZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Admin/AdminDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BZG1pbi9BZG1pbkRhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Admin/AdminProjects.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BZG1pbi9BZG1pblByb2plY3RzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Admin/AdminSiteConfig.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BZG1pbi9BZG1pblNpdGVDb25maWcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/AdminLogin.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BZG1pbkxvZ2luLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/Pages/Blog.razor]
@@ -50,6 +98,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/ServerStatusComponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TZXJ2ZXJTdGF0dXNDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Shared/FileUploadComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvRmlsZVVwbG9hZENvbXBvbmVudC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/TechnologySection.razor]

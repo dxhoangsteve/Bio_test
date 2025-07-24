@@ -75,9 +75,13 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Avatar</label>
-                                <FileUploadComponent UploadEndpoint="/api/Upload/image" AcceptedTypes="image/*"
+                                <FileUploadComponent UploadEndpoint="/api/Upload/avatar" AcceptedTypes="image/*"
                                     MaxSizeInMB="5" CurrentImageUrl="@siteConfig.AvatarURL" Label="Chọn avatar"
-                                    OnUploadSuccess="OnAvatarUploaded" OnRemoveImage="OnAvatarRemoved" />
+                                    AutoSave="true" OnUploadSuccess="OnAvatarUploaded" OnRemoveImage="OnAvatarRemoved" />
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Avatar sẽ được tự động lưu vào database sau khi upload thành công.
+                                </small>
                             </div>
 
                             <div class="mb-3">
@@ -152,17 +156,13 @@
                             <h4><i class="fas fa-file-pdf me-2"></i>CV & Tài liệu</h4>
 
                             <div class="mb-3">
-                                <label class="form-label">CV File Path</label>
-                                <div class="input-group">
-                                    <InputText @bind-Value="siteConfig.CV_FilePath" class="form-control"
-                                        placeholder="Đường dẫn đến file CV" />
-                                    <button type="button" class="btn btn-outline-secondary">
-                                        <i class="fas fa-upload"></i> Upload CV
-                                    </button>
-                                </div>
-                                <ValidationMessage For="() => siteConfig.CV_FilePath" />
-                                <small class="form-text text-muted">
-                                    Tải lên file CV (PDF) để khách hàng có thể tải xuống
+                                <label class="form-label">CV File</label>
+                                <FileUploadComponent UploadEndpoint="/api/Upload/cv" AcceptedTypes=".pdf,.doc,.docx"
+                                    MaxSizeInMB="10" CurrentImageUrl="@siteConfig.CV_FilePath" Label="Chọn file CV"
+                                    AutoSave="true" OnUploadSuccess="OnCVUploaded" OnRemoveImage="OnCVRemoved" />
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Hỗ trợ file PDF, DOC, DOCX. Tối đa 10MB.
                                 </small>
                             </div>
 
@@ -296,6 +296,17 @@
     {
         siteConfig.AvatarURL = "";
     }
+
+    private void OnCVUploaded(string fileUrl)
+    {
+        siteConfig.CV_FilePath = fileUrl;
+        StateHasChanged();
+    }
+
+    private void OnCVRemoved()
+    {
+        siteConfig.CV_FilePath = "";
+    }
 }
 
 <style>
@@ -416,19 +427,18 @@
         color: rgba(255, 255, 255, 0.7) !important;
     }
 
-    @@media (max-width: 768px) {
-        .config-panel {
-            padding: 1rem;
-        }
+    /* Responsive styles */
+    .config-panel {
+        padding: 1rem;
+    }
 
-        .stat-card {
-            flex-direction: column;
-            text-align: center;
-        }
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
 
-        .stat-icon {
-            margin-right: 0;
-            margin-bottom: 1rem;
-        }
+    .stat-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
     }
 </style>

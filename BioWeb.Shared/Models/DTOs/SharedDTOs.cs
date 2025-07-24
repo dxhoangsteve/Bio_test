@@ -1,5 +1,12 @@
 namespace BioWeb.Shared.Models.DTOs
 {
+    public class LoginResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public string Token { get; set; } = "";
+    }
+
     /// <summary>
     /// DTO cho Project
     /// </summary>
@@ -27,6 +34,7 @@ namespace BioWeb.Shared.Models.DTOs
         public int ArticleID { get; set; }
         public string Title { get; set; } = "";
         public string Content { get; set; } = "";
+        public string ThumbnailURL { get; set; } = "";
         public bool IsPublished { get; set; }
         public DateTime CreatedAt { get; set; }
         public int CategoryID { get; set; }
@@ -40,6 +48,7 @@ namespace BioWeb.Shared.Models.DTOs
     {
         public int CategoryID { get; set; }
         public string CategoryName { get; set; } = "";
+        public string Description { get; set; } = "";
         public ICollection<ArticleDto> Articles { get; set; } = new List<ArticleDto>();
     }
 

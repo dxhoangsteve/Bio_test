@@ -32,12 +32,15 @@ namespace BioWeb.client.Services
         Task SetAuthTokenAsync(string token);
         Task LoadAuthTokenAsync();
         Task ClearAuthTokenAsync();
+        Task<bool> ValidateTokenAsync(string token);
 
         // Additional methods for dialogs
         Task<ContactInfoDto> GetContactAsync();
 
         // File Upload methods
         Task<ApiResponse<UploadResponse>> UploadFileAsync(string endpoint, MultipartFormDataContent content);
+        Task<ApiResponse<FileInfoResponse>> GetFileInfoAsync(string category, string fileName);
+        Task<SimpleResponse> DeleteFileAsync(string category, string fileName);
 
         // Admin CRUD methods
         Task<ApiResponse<AboutMeDto>> UpdateAboutMeAsync(AboutMeDto aboutMe);
@@ -418,6 +421,31 @@ namespace BioWeb.client.Services
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "adminToken");
         }
 
+        /// <summary>
+        /// Validate JWT token với server
+        /// </summary>
+        public async Task<bool> ValidateTokenAsync(string token)
+        {
+            try
+            {
+                // Tạm thời set token để test
+                var originalAuth = _httpClient.DefaultRequestHeaders.Authorization;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _httpClient.GetAsync("/api/Auth/validate-token");
+
+                // Restore original auth header
+                _httpClient.DefaultRequestHeaders.Authorization = originalAuth;
+
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         #endregion
 
         #region Additional Dialog Methods
@@ -480,6 +508,82 @@ namespace BioWeb.client.Services
                 {
                     Success = false,
                     Message = $"Upload error: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Get file information
+        /// </summary>
+        public async Task<ApiResponse<FileInfoResponse>> GetFileInfoAsync(string category, string fileName)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/Upload/file-info/{category}/{fileName}");
+                var json = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<FileInfoResponse>>(json, _jsonOptions);
+                    ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse ?? new ApiResponse<FileInfoResponse> { Success = false, Message = "Invalid response" };
+                }
+                else
+                {
+                    var errorResponse = JsonSerializer.Deserialize<ApiResponse<FileInfoResponse>>(json, _jsonOptions);
+                    ServerStatusChanged?.Invoke(false, errorResponse?.Message ?? "Unknown error");
+                    return errorResponse ?? new ApiResponse<FileInfoResponse>
+                    {
+                        Success = false,
+                        Message = $"Get file info failed: {response.StatusCode}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"Get file info error: {ex.Message}");
+                return new ApiResponse<FileInfoResponse>
+                {
+                    Success = false,
+                    Message = $"Get file info error: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Delete file
+        /// </summary>
+        public async Task<SimpleResponse> DeleteFileAsync(string category, string fileName)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/Upload/file/{category}/{fileName}");
+                var json = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = JsonSerializer.Deserialize<SimpleResponse>(json, _jsonOptions);
+                    ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse ?? new SimpleResponse { Success = false, Message = "Invalid response" };
+                }
+                else
+                {
+                    var errorResponse = JsonSerializer.Deserialize<SimpleResponse>(json, _jsonOptions);
+                    ServerStatusChanged?.Invoke(false, errorResponse?.Message ?? "Unknown error");
+                    return errorResponse ?? new SimpleResponse
+                    {
+                        Success = false,
+                        Message = $"Delete file failed: {response.StatusCode}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"Delete file error: {ex.Message}");
+                return new SimpleResponse
+                {
+                    Success = false,
+                    Message = $"Delete file error: {ex.Message}"
                 };
             }
         }
@@ -1263,7 +1367,7 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync("/api/SiteConfiguration", content);
+                var response = await _httpClient.PutAsync($"/api/SiteConfiguration/{siteConfig.ConfigID}", content);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)

@@ -432,6 +432,16 @@
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets": {}
         }
+      },
+      "BioWeb.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/BioWeb.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BioWeb.Shared.dll": {}
+        }
       }
     },
     "net9.0/browser-wasm": {
@@ -864,6 +874,16 @@
         "build": {
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets": {}
+        }
+      },
+      "BioWeb.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/BioWeb.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BioWeb.Shared.dll": {}
         }
       }
     }
@@ -1746,10 +1766,16 @@
         "tools/net9.0/Microsoft.NET.Sdk.WebAssembly.Pack.Tasks.dll",
         "tools/net9.0/Microsoft.NET.WebAssembly.Webcil.dll"
       ]
+    },
+    "BioWeb.Shared/1.0.0": {
+      "type": "project",
+      "path": "../BioWeb.Shared/BioWeb.Shared.csproj",
+      "msbuildProject": "../BioWeb.Shared/BioWeb.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "BioWeb.Shared >= 1.0.0",
       "Microsoft.AspNetCore.Components.WebAssembly >= 9.0.6",
       "Microsoft.AspNetCore.Components.WebAssembly.DevServer >= 9.0.6",
       "Microsoft.NET.ILLink.Tasks >= 9.0.6",
@@ -1780,7 +1806,11 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/sterb/dev/Bio_test/BioWeb.Shared/BioWeb.Shared.csproj": {
+              "projectPath": "/home/sterb/dev/Bio_test/BioWeb.Shared/BioWeb.Shared.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

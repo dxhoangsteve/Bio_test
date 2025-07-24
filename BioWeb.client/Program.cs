@@ -12,11 +12,12 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https:/
 
 // Register services
 builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddScoped<BioWeb.client.Services.IAuthService, BioWeb.client.Services.AuthService>();
 
-// Configure HttpClient base address
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri("https://localhost:7254/")
-});
+var app = builder.Build();
 
-await builder.Build().RunAsync();
+// Load auth token on startup
+var apiService = app.Services.GetRequiredService<IApiService>();
+await apiService.LoadAuthTokenAsync();
+
+await app.RunAsync();

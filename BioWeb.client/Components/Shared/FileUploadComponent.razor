@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using BioWeb.client.Services
+@using BioWeb.client.Models
 @inject IApiService ApiService
 @inject IJSRuntime JSRuntime
 
@@ -7,15 +8,49 @@
     <!-- Current Image Preview -->
     @if (!string.IsNullOrEmpty(CurrentImageUrl))
     {
-        <div class="current-image-preview mb-3">
-            <label class="form-label">Hình ảnh hiện tại:</label>
-            <div class="image-preview-wrapper">
-                <img src="@CurrentImageUrl" alt="Current image" class="current-image" />
-                <button type="button" class="btn btn-sm btn-outline-danger remove-current" @onclick="RemoveCurrentImage"
-                    title="Xóa hình ảnh hiện tại">
-                    <i class="fas fa-times"></i>
-                </button>
+        <div class="current-file-preview mb-3">
+            <label class="form-label">@(IsImageFile(CurrentImageUrl) ? "Hình ảnh hiện tại:" : "File hiện tại:"):</label>
+            <div class="file-preview-wrapper">
+                @if (IsImageFile(CurrentImageUrl))
+                {
+                    <img src="@CurrentImageUrl" alt="Current image" class="current-image" />
+                }
+                else
+                {
+                    <div class="file-preview">
+                        <div class="file-icon">
+                            <i class="@GetFileIcon(CurrentImageUrl) fa-3x"></i>
+                        </div>
+                        <div class="file-name">
+                            @GetFileName(CurrentImageUrl)
+                        </div>
+                        <a href="@CurrentImageUrl" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-external-link-alt me-1"></i>Xem file
+                        </a>
+                    </div>
+                }
+                <div class="file-actions">
+                    <button type="button" class="btn btn-sm btn-outline-info me-2" @onclick="ShowFileInfo"
+                        title="Xem thông tin file">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="RemoveCurrentImage"
+                        title="Xóa file hiện tại">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
+            @if (showFileInfo && currentFileInfo != null)
+            {
+                <div class="file-info-details mt-2 p-2 bg-light rounded">
+                    <small class="text-muted">
+                        <strong>Tên file:</strong> @currentFileInfo.FileName<br />
+                        <strong>Kích thước:</strong> @FormatFileSize(currentFileInfo.Size)<br />
+                        <strong>Tạo lúc:</strong> @currentFileInfo.CreatedAt.ToString("dd/MM/yyyy HH:mm")<br />
+                        <strong>Cập nhật:</strong> @currentFileInfo.LastModified.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+                </div>
+            }
         </div>
     }
 
@@ -102,6 +137,7 @@
     [Parameter] public int MaxSizeInMB { get; set; } = 5;
     [Parameter] public string CurrentImageUrl { get; set; } = "";
     [Parameter] public string Label { get; set; } = "Chọn hình ảnh";
+    [Parameter] public bool AutoSave { get; set; } = false;
     [Parameter] public EventCallback<string> OnUploadSuccess { get; set; }
     [Parameter] public EventCallback OnRemoveImage { get; set; }
 
@@ -112,6 +148,8 @@
     private bool isUploading = false;
     private int uploadProgress = 0;
     private string inputId = Guid.NewGuid().ToString();
+    private bool showFileInfo = false;
+    private FileInfoResponse? currentFileInfo;
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
@@ -140,7 +178,7 @@
                     var base64 = Convert.ToBase64String(buffer);
                     newImagePreview = $"data:{selectedFile.ContentType};base64,{base64}";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     errorMessage = "Không thể tạo preview hình ảnh.";
                 }
@@ -175,6 +213,16 @@
             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedFile.ContentType);
             content.Add(fileContent, "file", selectedFile.Name);
 
+            // Thêm tên file cũ để server có thể xóa
+            if (!string.IsNullOrEmpty(CurrentImageUrl))
+            {
+                var oldFileName = Path.GetFileName(new Uri(CurrentImageUrl).LocalPath);
+                content.Add(new StringContent(oldFileName), "oldFileName");
+            }
+
+            // Thêm autoSave flag
+            content.Add(new StringContent(AutoSave ? "true" : "false"), "autoSave");
+
             // Upload file
             var response = await ApiService.UploadFileAsync(UploadEndpoint, content);
 
@@ -183,7 +231,7 @@
 
             if (response.Success && response.Data != null)
             {
-                successMessage = "Upload thành công!";
+                successMessage = AutoSave ? "Upload và lưu thành công!" : "Upload thành công!";
                 await OnUploadSuccess.InvokeAsync(response.Data.Url);
 
                 // Clear form
@@ -195,7 +243,7 @@
                 errorMessage = response.Message ?? "Upload thất bại.";
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             errorMessage = "Đã xảy ra lỗi khi upload file.";
         }
@@ -211,11 +259,73 @@
         await OnRemoveImage.InvokeAsync();
     }
 
+    private async Task ShowFileInfo()
+    {
+        if (!string.IsNullOrEmpty(CurrentImageUrl))
+        {
+            try
+            {
+                var uri = new Uri(CurrentImageUrl);
+                var pathSegments = uri.LocalPath.Split('/');
+                if (pathSegments.Length >= 3)
+                {
+                    var category = pathSegments[^2]; // Second to last segment
+                    var fileName = pathSegments[^1]; // Last segment
+
+                    var response = await ApiService.GetFileInfoAsync(category, fileName);
+                    if (response.Success && response.Data != null)
+                    {
+                        currentFileInfo = response.Data;
+                        showFileInfo = !showFileInfo;
+                    }
+                    else
+                    {
+                        errorMessage = "Không thể lấy thông tin file";
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                errorMessage = "Lỗi khi lấy thông tin file";
+            }
+        }
+    }
+
     private string FormatFileSize(long bytes)
     {
         if (bytes < 1024) return $"{bytes} B";
         if (bytes < 1024 * 1024) return $"{bytes / 1024:F1} KB";
         return $"{bytes / (1024 * 1024):F1} MB";
+    }
+
+    private bool IsImageFile(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return false;
+        var extension = Path.GetExtension(url).ToLower();
+        return extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".gif" || extension == ".bmp"
+        || extension == ".webp";
+    }
+
+    private string GetFileIcon(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "fas fa-file";
+        var extension = Path.GetExtension(url).ToLower();
+        return extension switch
+        {
+            ".pdf" => "fas fa-file-pdf text-danger",
+            ".doc" or ".docx" => "fas fa-file-word text-primary",
+            ".xls" or ".xlsx" => "fas fa-file-excel text-success",
+            ".ppt" or ".pptx" => "fas fa-file-powerpoint text-warning",
+            ".txt" => "fas fa-file-alt text-secondary",
+            ".zip" or ".rar" or ".7z" => "fas fa-file-archive text-info",
+            _ => "fas fa-file text-muted"
+        };
+    }
+
+    private string GetFileName(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+        return Path.GetFileName(new Uri(url).LocalPath);
     }
 }
 
@@ -224,13 +334,36 @@
         margin-bottom: 1rem;
     }
 
-    .current-image-preview {
+    .current-file-preview {
         position: relative;
     }
 
-    .image-preview-wrapper {
+    .file-preview-wrapper {
         position: relative;
         display: inline-block;
+    }
+
+    .file-preview {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: #f8f9fa;
+        min-width: 200px;
+    }
+
+    .file-icon {
+        margin-bottom: 0.5rem;
+    }
+
+    .file-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        word-break: break-word;
     }
 
     .current-image {
@@ -239,12 +372,18 @@
         border-radius: 8px;
         border: 2px solid #dee2e6;
         object-fit: cover;
+        display: block;
     }
 
-    .remove-current {
+    .file-actions {
         position: absolute;
         top: -8px;
         right: -8px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .image-actions .btn {
         width: 24px;
         height: 24px;
         border-radius: 50%;
@@ -252,6 +391,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .file-info-details {
+        border: 1px solid #dee2e6;
     }
 
     .file-input-wrapper {

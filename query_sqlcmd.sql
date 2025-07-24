@@ -21,3 +21,4 @@ from BioWeb.dbo.Categories
 
 select *
 from BioWeb.dbo.Projects
+
