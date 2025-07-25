@@ -15,6 +15,9 @@
 
                             <!-- Navigation items -->
                             <div class="nav-items @(isMobileMenuOpen ? "mobile-open" : "")">
+                                <a href="/" class="nav-item @(IsActive("/") ? "active" : "")" @onclick="CloseMobileMenu">
+                                    <i class="fa-solid fa-blog"></i>
+                                </a>
                                 <a href="/about-me" class="nav-item @(IsActive("/about-me") ? "active" : "")"
                                     @onclick="CloseMobileMenu">
                                     About Me

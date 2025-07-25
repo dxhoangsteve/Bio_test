@@ -56,6 +56,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvQmxvZ0xheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Layout/EmptyLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvRW1wdHlMYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -118,18 +122,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/TechnologySection.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9UZWNobm9sb2d5U2VjdGlvbi5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[/home/sterb/dev/Bio_test/BioWeb.client/Pages/Counter.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ291bnRlci5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[/home/sterb/dev/Bio_test/BioWeb.client/Pages/Home.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSG9tZS5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[/home/sterb/dev/Bio_test/BioWeb.client/Pages/Weather.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXMvV2VhdGhlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/sterb/dev/Bio_test/BioWeb.client/_Imports.razor]

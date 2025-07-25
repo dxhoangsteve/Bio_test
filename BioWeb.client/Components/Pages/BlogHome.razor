@@ -1,11 +1,13 @@
+@page "/"
+@layout EmptyLayout
+@using BioWeb.client.Components.Layout
 @using BioWeb.Shared.Models.DTOs
 @using BioWeb.client.Services
-@using BioWeb.client.Components.Layout
 @inject IApiService ApiService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
-<PageTitle>Blog - Đinh Xuân Hoàng</PageTitle>
+<PageTitle>Blog</PageTitle>
 
 <BlogLayout Categories="@categories"
            CategoryFilterChanged="@OnCategoryFilterChanged"
