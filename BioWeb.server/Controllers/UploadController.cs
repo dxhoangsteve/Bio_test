@@ -188,6 +188,42 @@ namespace BioWeb.Server.Controllers
         }
 
         /// <summary>
+        /// Download CV file (public endpoint)
+        /// </summary>
+        [HttpGet("cv/download")]
+        public async Task<IActionResult> DownloadCV()
+        {
+            try
+            {
+                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
+
+                if (string.IsNullOrEmpty(config.CV_FilePath))
+                {
+                    return NotFound(new { message = "CV file not found" });
+                }
+
+                // Extract filename from URL
+                var fileName = Path.GetFileName(new Uri(config.CV_FilePath).LocalPath);
+                var filePath = Path.Combine(_environment.WebRootPath, "uploads", "cv", fileName);
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return NotFound(new { message = "CV file not found on server" });
+                }
+
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+                var contentType = GetContentType(fileName);
+
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading CV");
+                return BadRequest(new { message = "Error downloading CV" });
+            }
+        }
+
+        /// <summary>
         /// Upload CV file (chỉ admin)
         /// </summary>
         [HttpPost("cv")]
@@ -555,6 +591,21 @@ namespace BioWeb.Server.Controllers
                 _logger.LogError(ex, "Failed to update CV URL in database: {CVUrl}", cvUrl);
                 // Không throw exception vì upload đã thành công
             }
+        }
+
+        /// <summary>
+        /// Get content type based on file extension
+        /// </summary>
+        private static string GetContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return extension switch
+            {
+                ".pdf" => "application/pdf",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                _ => "application/octet-stream"
+            };
         }
 
         #endregion

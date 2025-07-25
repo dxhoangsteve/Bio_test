@@ -39,7 +39,7 @@
                         <!-- Contact Cards -->
                         <div class="row g-4">
                             <!-- Email Card -->
-                            <div class="col-12 col-sm-6">
+                            <div class="col-12 col-md-6 @(string.IsNullOrEmpty(contact.CV_FilePath) ? "col-lg-6" : "col-lg-4")">
                                 <div class="card h-100 border-0 shadow-sm">
                                     <div class="card-body text-center p-4">
                                         <div class="mb-3">
@@ -54,8 +54,29 @@
                                 </div>
                             </div>
 
+
+
+                            <!-- CV Download Card -->
+                            @if (!string.IsNullOrEmpty(contact.CV_FilePath))
+                            {
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-body text-center p-4">
+                                            <div class="mb-3">
+                                                <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                            </div>
+                                            <h5 class="card-title">CV / Resume</h5>
+                                            <p class="card-text text-muted small">Tải xuống CV của tôi</p>
+                                            <a href="@contact.CV_FilePath" target="_blank" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-download me-1"></i>Tải CV
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
                             <!-- Phone Card -->
-                            <div class="col-12 col-sm-6">
+                            <div class="col-12 col-md-6 @(string.IsNullOrEmpty(contact.CV_FilePath) ? "col-lg-6" : "col-lg-4")">
                                 <div class="card h-100 border-0 shadow-sm">
                                     <div class="card-body text-center p-4">
                                         <div class="mb-3">

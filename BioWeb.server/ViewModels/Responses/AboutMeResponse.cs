@@ -35,6 +35,7 @@ namespace BioWeb.Server.ViewModels.Responses
         public string GitHubURL { get; set; } = "";
         public string LinkedInURL { get; set; } = "";
         public string FacebookURL { get; set; } = "";
+        public string CV_FilePath { get; set; } = "";
     }
 
     /// <summary>

@@ -180,7 +180,8 @@ namespace BioWeb.Server.Controllers
                     Address = config.Address,
                     GitHubURL = config.GitHubURL,
                     LinkedInURL = config.LinkedInURL,
-                    FacebookURL = config.FacebookURL
+                    FacebookURL = config.FacebookURL,
+                    CV_FilePath = config.CV_FilePath
                 };
 
                 return Ok(new SiteConfigurationApiResponse<ContactResponse>
@@ -364,7 +365,8 @@ namespace BioWeb.Server.Controllers
                     Address = config.Address,
                     GitHubURL = config.GitHubURL,
                     LinkedInURL = config.LinkedInURL,
-                    FacebookURL = config.FacebookURL
+                    FacebookURL = config.FacebookURL,
+                    CV_FilePath = config.CV_FilePath
                 };
 
                 return Ok(new SiteConfigurationApiResponse<ContactResponse>
@@ -436,6 +438,8 @@ namespace BioWeb.Server.Controllers
             // Fallback về RemoteIpAddress
             return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         }
+
+
 
     }
 

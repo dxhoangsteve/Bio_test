@@ -223,10 +223,30 @@ namespace BioWeb.client.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<ContactInfoDto>>(json, _jsonOptions);
+                    // Server trả về SiteConfigurationApiResponse<ContactResponse>
+                    var apiResponse = JsonSerializer.Deserialize<SiteConfigurationApiResponse<ContactResponse>>(json, _jsonOptions);
 
-                    ServerStatusChanged?.Invoke(true, "");
-                    return apiResponse?.Data ?? new ContactInfoDto();
+                    if (apiResponse?.Success == true && apiResponse.Data != null)
+                    {
+                        // Debug log
+                        Console.WriteLine($"API Response CV_FilePath: '{apiResponse.Data.CV_FilePath}'");
+
+                        // Map ContactResponse sang ContactInfoDto
+                        var contactInfo = new ContactInfoDto
+                        {
+                            Email = apiResponse.Data.Email,
+                            PhoneNumber = apiResponse.Data.PhoneNumber,
+                            Address = apiResponse.Data.Address,
+                            GitHubURL = apiResponse.Data.GitHubURL,
+                            LinkedInURL = apiResponse.Data.LinkedInURL,
+                            FacebookURL = apiResponse.Data.FacebookURL,
+                            CV_FilePath = apiResponse.Data.CV_FilePath
+                        };
+
+                        Console.WriteLine($"Mapped ContactInfoDto CV_FilePath: '{contactInfo.CV_FilePath}'");
+                        ServerStatusChanged?.Invoke(true, "");
+                        return contactInfo;
+                    }
                 }
 
                 ServerStatusChanged?.Invoke(false, $"API trả về: {response.StatusCode}");

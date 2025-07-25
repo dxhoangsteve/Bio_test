@@ -48,9 +48,9 @@
                         <button class="btn btn-outline-primary" @onclick="RefreshData">
                             <i class="fas fa-sync-alt me-2"></i>Làm mới
                         </button>
-                        <button class="btn btn-outline-info" @onclick="ToggleView">
+                        @* <button class="btn btn-outline-info" @onclick="ToggleView">
                             <i class="fas fa-eye me-2"></i>@(showPublicView ? "Xem Admin" : "Xem Public")
-                        </button>
+                        </button> *@
                     </div>
                 </div>
             </div>
@@ -185,9 +185,9 @@
                                     <button class="btn btn-sm btn-outline-primary" @onclick="() => EditArticle(article)">
                                         <i class="fas fa-edit me-1"></i>Sửa
                                     </button>
-                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ViewArticle(article)">
+                                    @* <button class="btn btn-sm btn-outline-info" @onclick="() => ViewArticle(article)">
                                         <i class="fas fa-eye me-1"></i>Xem
-                                    </button>
+                                    </button> *@
                                     <button class="btn btn-sm btn-outline-warning" @onclick="() => TogglePublish(article)">
                                         <i class="fas fa-@(article.IsPublished ? "eye-slash" : "eye") me-1"></i>
                                         @(article.IsPublished ? "Ẩn" : "Hiện")
@@ -499,7 +499,7 @@
     }
 
     .loading-text {
-        color: white;
+        color: black;
         font-size: 1.1rem;
         margin: 0;
     }
@@ -515,18 +515,18 @@
 
     .empty-icon {
         font-size: 4rem;
-        color: rgba(255, 255, 255, 0.3);
+        color: rgba(0, 0, 0, 0.6);
         margin-bottom: 1.5rem;
     }
 
     .empty-title {
-        color: white;
+        color: black;
         margin-bottom: 1rem;
         font-weight: 600;
     }
 
     .empty-description {
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(0, 0, 0, 0.7);
         margin-bottom: 2rem;
     }
 
@@ -577,14 +577,14 @@
     }
 
     .stat-content h5 {
-        color: white;
+        color: black;
         margin: 0;
         font-size: 1.8rem;
         font-weight: 700;
     }
 
     .stat-content p {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(0, 0, 0, 0.8);
         margin: 0;
         font-size: 0.9rem;
     }
@@ -720,7 +720,7 @@
     }
 
     .article-info .article-title {
-        color: white;
+        color: black;
         font-size: 1.1rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
@@ -747,12 +747,12 @@
     }
 
     .date-tag {
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(0, 0, 0, 0.7);
         font-size: 0.75rem;
     }
 
     .article-excerpt {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(0, 0, 0, 0.8);
         font-size: 0.85rem;
         line-height: 1.4;
         display: -webkit-box;
@@ -843,6 +843,7 @@
 
         .articles-stats .row {
             gap: 1rem;
+            color: black;
         }
 
         .articles-stats .col-md-3 {
