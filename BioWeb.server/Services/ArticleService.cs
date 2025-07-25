@@ -11,6 +11,7 @@ namespace BioWeb.Server.Services
     {
         Task<IEnumerable<Article>> GetAllArticlesAsync();
         Task<IEnumerable<Article>> GetPublishedArticlesAsync();
+        Task<IEnumerable<Article>> GetPublishedArticlesByCategoryAsync(int categoryId);
 
         Task<Article?> GetArticleByIdAsync(int id);
         Task<Article?> GetPublishedArticleByIdAsync(int id);
@@ -56,6 +57,20 @@ namespace BioWeb.Server.Services
             return await _context.Articles
                 .Include(a => a.Category)
                 .Where(a => a.IsPublished) // Chỉ lấy bài đã publish
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Lấy bài viết đã publish theo category - guest lọc bài viết theo chủ đề
+        /// </summary>
+        /// <param name="categoryId">ID của category</param>
+        /// <returns>Danh sách bài viết đã publish trong category</returns>
+        public async Task<IEnumerable<Article>> GetPublishedArticlesByCategoryAsync(int categoryId)
+        {
+            return await _context.Articles
+                .Include(a => a.Category)
+                .Where(a => a.IsPublished && a.CategoryID == categoryId) // Chỉ lấy bài đã publish và đúng category
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
         }

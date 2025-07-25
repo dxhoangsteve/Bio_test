@@ -1,12 +1,4 @@
 ﻿@page "/"
-@inject NavigationManager Navigation
+@using BioWeb.client.Components.Pages
 
-<PageTitle>Bio Website - Đinh Xuân Hoàng</PageTitle>
-
-@code {
-    protected override void OnInitialized()
-    {
-        // Redirect to about me page
-        Navigation.NavigateTo("/about-me", replace: true);
-    }
-}
+<BlogHome />

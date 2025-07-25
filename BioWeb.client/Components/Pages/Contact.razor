@@ -161,6 +161,9 @@
             // Load About Me info only
             contact = await ApiService.GetContactInfoDto();
 
+            // Tăng view count khi vào trang contact
+            await IncrementViewCount();
+
             isLoading = false;
             StateHasChanged();
         }
@@ -169,6 +172,19 @@
             Console.WriteLine($"Error loading about me data: {ex.Message}");
             isLoading = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task IncrementViewCount()
+    {
+        try
+        {
+            await ApiService.IncrementViewCountAsync();
+            Console.WriteLine("View count incremented for Contact page");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error incrementing view count: {ex.Message}");
         }
     }
 

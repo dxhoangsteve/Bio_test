@@ -1,0 +1,101 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<div class="blog-layout">
+    <!-- Fixed Header -->
+    <header class="blog-header">
+        <div class="blog-header-content">
+            <!-- Left side - Category filter icon -->
+            <button class="header-icon-btn" @onclick="ToggleCategoryFilter" title="Lọc theo chủ đề">
+                <i class="fas fa-filter"></i>
+            </button>
+
+            <!-- Center - Site title -->
+            <h1 class="blog-title">
+                <a href="/" class="title-link">Blog</a>
+            </h1>
+
+            <!-- Right side - Bio/About me icon -->
+            <button class="header-icon-btn" @onclick="NavigateToAboutMe" title="Xem thông tin cá nhân">
+                <i class="fas fa-user"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Category Filter Sidebar -->
+    <div class="category-sidebar @(showCategoryFilter ? "show" : "")">
+        <div class="category-sidebar-content">
+            <div class="category-header">
+                <h3>Chủ đề</h3>
+                <button class="close-btn" @onclick="ToggleCategoryFilter">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="category-list">
+                @if (CategoryFilterChanged.HasDelegate)
+                {
+                    <button class="category-item @(selectedCategoryId == 0 ? "active" : "")"
+                        @onclick="() => SelectCategory(0)">
+                        <i class="fas fa-list"></i>
+                        Tất cả bài viết
+                    </button>
+                    @foreach (var category in Categories)
+                    {
+                        <button class="category-item @(selectedCategoryId == category.CategoryID ? "active" : "")"
+                            @onclick="() => SelectCategory(category.CategoryID)">
+                            <i class="fas fa-tag"></i>
+                            @category.CategoryName
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for mobile -->
+    @if (showCategoryFilter)
+    {
+        <div class="sidebar-overlay" @onclick="ToggleCategoryFilter"></div>
+    }
+
+    <!-- Main Content -->
+    <main class="blog-main">
+        @ChildContent
+    </main>
+</div>
+
+@code {
+    [Parameter] public List<BioWeb.Shared.Models.DTOs.CategoryDto> Categories { get; set; } = new();
+    [Parameter] public EventCallback<int> CategoryFilterChanged { get; set; }
+    [Parameter] public int SelectedCategoryId { get; set; } = 0;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool showCategoryFilter = false;
+    private int selectedCategoryId = 0;
+
+    protected override void OnParametersSet()
+    {
+        selectedCategoryId = SelectedCategoryId;
+    }
+
+    private void ToggleCategoryFilter()
+    {
+        showCategoryFilter = !showCategoryFilter;
+    }
+
+    private async Task SelectCategory(int categoryId)
+    {
+        selectedCategoryId = categoryId;
+        showCategoryFilter = false;
+
+        if (CategoryFilterChanged.HasDelegate)
+        {
+            await CategoryFilterChanged.InvokeAsync(categoryId);
+        }
+    }
+
+    private void NavigateToAboutMe()
+    {
+        Navigation.NavigateTo("/about-me");
+    }
+}

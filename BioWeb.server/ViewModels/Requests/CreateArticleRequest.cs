@@ -14,6 +14,8 @@ namespace BioWeb.Server.ViewModels.Requests
         [Required(ErrorMessage = "Nội dung bài viết không thể để trống")]
         public string Content { get; set; } = null!;
 
+        public string ThumbnailURL { get; set; } = "";
+
         public bool IsPublished { get; set; } = false; // Mặc định chưa publish
 
         [Required(ErrorMessage = "Phải chọn category cho bài viết")]

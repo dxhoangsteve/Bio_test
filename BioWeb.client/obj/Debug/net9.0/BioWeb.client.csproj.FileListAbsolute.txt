@@ -6,8 +6,8 @@
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/BioWeb.client.csproj.CoreCompileInputs.cache
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/BioWeb.client.MvcApplicationPartsAssemblyInfo.cache
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/BioWeb.client.sourcelink.json
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.kf9tzkvvyv.pdb
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.zccb6i8bcd.wasm
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.j4w4y85ojh.pdb
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.3uae6czf1b.wasm
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/blazor.boot.json
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/blazor.webassembly.js
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/dotnet.js
@@ -249,7 +249,7 @@
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/System.Private.Xml.ygkocwikl4.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/dotnet.js.map.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/System.Net.ServicePoint.5v95sh5c67.wasm.gz
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.kf9tzkvvyv.pdb.gz
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.j4w4y85ojh.pdb.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/System.Net.WebSockets.Client.b37svw0y4i.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/Microsoft.Extensions.Primitives.vutb1mf5cz.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/System.Security.Cryptography.Encoding.4j2304etti.wasm.gz
@@ -314,7 +314,7 @@
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/Microsoft.Extensions.FileProviders.Abstractions.w4n6sx9nop.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/Microsoft.Extensions.Logging.Abstractions.7bglk34tl5.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/System.IO.Pipes.AccessControl.qfh40ih8l6.wasm.gz
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.zccb6i8bcd.wasm.gz
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.Shared.3uae6czf1b.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/Microsoft.VisualBasic.Core.hev5t09xbg.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/Microsoft.Win32.Primitives.nt18748s0w.wasm.gz
 /home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/System.Net.Requests.omoxxcqo90.wasm.gz
@@ -821,7 +821,7 @@
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/blazor.boot.json
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/7v4q5lay7k-193fs2eyp9.gz
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/2gu3yt1evd-uo01kdzvyd.gz
-/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/6wdy4nq7uy-690a8iegpp.gz
+/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/6wdy4nq7uy-ov0h7bhluw.gz
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/oqh3c6p17a-bqjiyaj88i.gz
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/jzfw15u8uz-c2jlpeoesf.gz
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/xj4cv66jdc-erw9l3u2r3.gz
@@ -1068,8 +1068,8 @@
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/jfi1ojnkgr-tjcz0u77k5.gz
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/llwc94qwb3-tptq2av103.gz
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/m22d4wxwn1-lfu7j35m59.gz
-/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/imvdnvp74c-zccb6i8bcd.gz
-/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/6i5uespk7h-kf9tzkvvyv.gz
+/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/imvdnvp74c-3uae6czf1b.gz
+/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/6i5uespk7h-j4w4y85ojh.gz
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/staticwebassets.build.json
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/staticwebassets.build.json.cache
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/staticwebassets.development.json
@@ -1079,10 +1079,11 @@
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/refint/BioWeb.client.dll
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/BioWeb.client.pdb
 /home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/ref/BioWeb.client.dll
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.kl90db886n.pdb
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.bvk2upxt5o.wasm
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.bvk2upxt5o.wasm.gz
-/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.kl90db886n.pdb.gz
-/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/jhnchitp3y-bvk2upxt5o.gz
-/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/qfwc6iqcdb-kl90db886n.gz
-/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/61xe94g0pn-gdhz9z9lv5.gz
+/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/f6bftpi64e-m1x2dw2mlq.gz
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.3c4tqm786p.pdb
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.vozm4cct69.wasm
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.vozm4cct69.wasm.gz
+/home/sterb/dev/Bio_test/BioWeb.client/bin/Debug/net9.0/wwwroot/_framework/BioWeb.client.3c4tqm786p.pdb.gz
+/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/jhnchitp3y-vozm4cct69.gz
+/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/qfwc6iqcdb-3c4tqm786p.gz
+/home/sterb/dev/Bio_test/BioWeb.client/obj/Debug/net9.0/compressed/61xe94g0pn-flxjrnj47w.gz

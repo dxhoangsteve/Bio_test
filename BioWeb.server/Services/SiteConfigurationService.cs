@@ -15,6 +15,7 @@ namespace BioWeb.Server.Services
         Task<bool> ResetSiteConfigurationAsync(int id);
         Task<SiteConfiguration> GetOrCreateDefaultConfigAsync();
         Task<bool> IncrementViewCountAsync();
+        Task<bool> IncrementViewCountAsync(string clientIp);
     }
 
     /// <summary>
@@ -23,9 +24,12 @@ namespace BioWeb.Server.Services
     public class SiteConfigurationService : ISiteConfigurationService
     {
         private readonly ApplicationDbContext _context;
+        private static readonly Dictionary<string, DateTime> _lastViewTimes = new();
+        private static readonly TimeSpan _viewCooldown = TimeSpan.FromMinutes(5); // 5 phút cooldown
 
         /// <summary>
         /// Khởi tạo một phiên bản mới của SiteConfigurationService.
+        /// </summary>
         public SiteConfigurationService(ApplicationDbContext context)
         {
             _context = context;
@@ -60,7 +64,7 @@ namespace BioWeb.Server.Services
         {
             config.UpdatedAt = DateTime.UtcNow;
             _context.Entry(config).State = EntityState.Modified;
-            
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -81,7 +85,7 @@ namespace BioWeb.Server.Services
 
         /// <summary>
         /// Reset cấu hình site về giá trị mặc định.
-        
+
         public async Task<bool> ResetSiteConfigurationAsync(int id)
         {
             var config = await _context.SiteConfigurations.FindAsync(id);
@@ -114,7 +118,7 @@ namespace BioWeb.Server.Services
         public async Task<SiteConfiguration> GetOrCreateDefaultConfigAsync()
         {
             var config = await GetSiteConfigurationAsync();
-            
+
             if (config == null)
             {
                 config = new SiteConfiguration
@@ -133,7 +137,7 @@ namespace BioWeb.Server.Services
                     ViewCount = 0,
                     UpdatedAt = DateTime.UtcNow
                 };
-                
+
                 config = await CreateSiteConfigurationAsync(config);
             }
 
@@ -148,6 +152,58 @@ namespace BioWeb.Server.Services
         {
             try
             {
+                var config = await GetOrCreateDefaultConfigAsync();
+                config.ViewCount++;
+                config.UpdatedAt = DateTime.UtcNow;
+
+                _context.Entry(config).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tăng view count với IP tracking để chống spam.
+        /// </summary>
+        /// <param name="clientIp">IP của client</param>
+        /// <returns>True nếu tăng thành công, ngược lại là false.</returns>
+        public async Task<bool> IncrementViewCountAsync(string clientIp)
+        {
+            try
+            {
+                // Kiểm tra cooldown
+                if (_lastViewTimes.ContainsKey(clientIp))
+                {
+                    var lastView = _lastViewTimes[clientIp];
+                    if (DateTime.UtcNow - lastView < _viewCooldown)
+                    {
+                        // Còn trong thời gian cooldown, không tăng view
+                        return false;
+                    }
+                }
+
+                // Cập nhật thời gian view cuối
+                _lastViewTimes[clientIp] = DateTime.UtcNow;
+
+                // Dọn dẹp các IP cũ (giữ lại 1000 IP gần nhất)
+                if (_lastViewTimes.Count > 1000)
+                {
+                    var oldEntries = _lastViewTimes
+                        .OrderBy(x => x.Value)
+                        .Take(_lastViewTimes.Count - 1000)
+                        .ToList();
+
+                    foreach (var entry in oldEntries)
+                    {
+                        _lastViewTimes.Remove(entry.Key);
+                    }
+                }
+
+                // Tăng view count
                 var config = await GetOrCreateDefaultConfigAsync();
                 config.ViewCount++;
                 config.UpdatedAt = DateTime.UtcNow;

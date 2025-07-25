@@ -22,6 +22,7 @@ namespace BioWeb.client.Services
         Task<ContactInfoDto> GetContactInfoDto();
 
         Task<List<ArticleDto>> GetPublishedArticlesAsync();
+        Task<List<ArticleDto>> GetArticlesByCategoryAsync(int categoryId);
 
         Task<ArticleDto?> GetArticleByIdAsync(int id);
         Task<List<CategoryDto>> GetCategoriesAsync();
@@ -70,6 +71,7 @@ namespace BioWeb.client.Services
         // Site Configuration methods
         Task<ApiResponse<SiteConfigurationDto>> GetSiteConfigurationAsync();
         Task<SimpleResponse> UpdateSiteConfigurationAsync(SiteConfigurationDto siteConfig);
+        Task<SimpleResponse> IncrementViewCountAsync();
     }
 
     public class ApiService : IApiService
@@ -291,7 +293,46 @@ namespace BioWeb.client.Services
             }
         }
 
+        /// <summary>
+        /// Lấy danh sách bài viết đã publish theo category
+        /// </summary>
+        public async Task<List<ArticleDto>> GetArticlesByCategoryAsync(int categoryId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/Article/category/{categoryId}");
 
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ArticleDto>>>(json, _jsonOptions);
+
+                    ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse?.Data ?? [];
+                }
+
+                ServerStatusChanged?.Invoke(false, $"API trả về: {response.StatusCode}");
+                return [];
+            }
+            catch (HttpRequestException ex)
+            {
+                ServerStatusChanged?.Invoke(false, "Không thể kết nối đến server");
+                Console.WriteLine($"Error fetching articles by category: {ex.Message}");
+                return [];
+            }
+            catch (TaskCanceledException)
+            {
+                ServerStatusChanged?.Invoke(false, "Kết nối server bị timeout");
+                Console.WriteLine("Articles by category request timeout");
+                return [];
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"Lỗi không xác định: {ex.Message}");
+                Console.WriteLine($"Error fetching articles by category: {ex.Message}");
+                return [];
+            }
+        }
 
         /// <summary>
         /// Lấy chi tiết bài viết theo ID
@@ -1392,6 +1433,42 @@ namespace BioWeb.client.Services
                 {
                     Success = false,
                     Message = $"Update error: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Tăng view count
+        /// </summary>
+        public async Task<SimpleResponse> IncrementViewCountAsync()
+        {
+            try
+            {
+                var response = await _httpClient.PutAsync("/api/SiteConfiguration/contact/view-count", null);
+                var json = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = JsonSerializer.Deserialize<SimpleResponse>(json, _jsonOptions);
+                    ServerStatusChanged?.Invoke(true, "");
+                    return apiResponse ?? new SimpleResponse { Success = false, Message = "Invalid response" };
+                }
+
+                ServerStatusChanged?.Invoke(false, $"Increment view count failed: {response.StatusCode}");
+                var errorResponse = JsonSerializer.Deserialize<SimpleResponse>(json, _jsonOptions);
+                return errorResponse ?? new SimpleResponse
+                {
+                    Success = false,
+                    Message = $"Increment view count failed: {response.StatusCode}"
+                };
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"Increment view count error: {ex.Message}");
+                return new SimpleResponse
+                {
+                    Success = false,
+                    Message = $"Increment view count error: {ex.Message}"
                 };
             }
         }

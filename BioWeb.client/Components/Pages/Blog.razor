@@ -10,99 +10,171 @@
 {
     <!-- Article Detail View -->
     <div class="article-detail-container">
-        <div class="article-header mb-4">
-            <button class="btn btn-outline-primary mb-3" @onclick="BackToList">
-                <i class="fas fa-arrow-left me-2"></i>Quay lại
-            </button>
-            <h1 class="article-title">@selectedArticle.Title</h1>
-            <div class="article-meta">
-                <span class="article-category">
-                    <i class="fas fa-tag me-1"></i>@selectedArticle.CategoryName
-                </span>
-                <span class="article-date">
-                    <i class="fas fa-calendar me-1"></i>@selectedArticle.CreatedAt.ToString("dd/MM/yyyy")
-                </span>
-            </div>
-        </div>
-
-        <div class="article-content">
-            <div class="article-body">
-                @((MarkupString)selectedArticle.Content)
-            </div>
-        </div>
-
-        <!-- Share Buttons -->
-        <div class="share-section mt-5">
-            <h5 class="share-title">Chia sẻ bài viết</h5>
-            <div class="share-buttons">
-                <button class="btn btn-facebook" @onclick="() => ShareOnFacebook(selectedArticle)">
-                    <i class="fab fa-facebook-f me-2"></i>Facebook
+        <div class="article-detail-card">
+            <div class="article-header">
+                <button class="back-button" @onclick="BackToList">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
                 </button>
+
+                @if (!string.IsNullOrEmpty(selectedArticle.ThumbnailURL))
+                {
+                    <div class="article-hero-image">
+                        <img src="@selectedArticle.ThumbnailURL" alt="@selectedArticle.Title" />
+                        <div class="article-hero-overlay">
+                            <h1 class="article-title">@selectedArticle.Title</h1>
+                            <div class="article-meta">
+                                <span class="article-category">
+                                    <i class="fas fa-tag me-1"></i>@selectedArticle.CategoryName
+                                </span>
+                                <span class="article-date">
+                                    <i class="fas fa-calendar me-1"></i>@selectedArticle.CreatedAt.ToString("dd/MM/yyyy")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="article-header-no-image">
+                        <h1 class="article-title">@selectedArticle.Title</h1>
+                        <div class="article-meta">
+                            <span class="article-category">
+                                <i class="fas fa-tag me-1"></i>@selectedArticle.CategoryName
+                            </span>
+                            <span class="article-date">
+                                <i class="fas fa-calendar me-1"></i>@selectedArticle.CreatedAt.ToString("dd/MM/yyyy")
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="article-content">
+                <div class="article-body fw-bold text-black-50">
+                    @((MarkupString)selectedArticle.Content)
+                </div>
+            </div>
+
+            <!-- Share Section -->
+            <div class="share-section">
+                <h4 class="share-title">
+                    <i class="fas fa-share-alt me-2"></i>Chia sẻ bài viết
+                </h4>
+                <div class="share-buttons">
+                    <button class="btn btn-facebook" @onclick="() => ShareOnFacebook(selectedArticle)">
+                        <i class="fab fa-facebook-f me-2"></i>Facebook
+                    </button>
+                    <button class="btn btn-twitter" @onclick="() => ShareOnTwitter(selectedArticle)">
+                        <i class="fab fa-twitter me-2"></i>Twitter
+                    </button>
+                    <button class="btn btn-linkedin" @onclick="() => ShareOnLinkedIn(selectedArticle)">
+                        <i class="fab fa-linkedin-in me-2"></i>LinkedIn
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 }
 else
 {
-    <!-- Blog List View -->
-    <div class="blog-container">
-        <div class="blog-header mb-4">
-            <h1 class="page-title fs-2">Blog của tôi</h1>
-            <p class="page-description">Chia sẻ kiến thức và kinh nghiệm lập trình</p>
-        </div>
 
 
-
-        <!-- Articles Grid -->
-        @if (isLoading)
-        {
-            <div class="text-center py-5">
+    <!-- Articles Grid -->
+    @if (isLoading)
+    {
+        <div class="loading-section">
+            <div class="loading-spinner">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Đang tải...</span>
                 </div>
-                <p class="mt-2">Đang tải bài viết...</p>
             </div>
-        }
-        else if (!articles.Any())
-        {
-            <div class="text-center py-5">
-                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-                <h4>Chưa có bài viết nào</h4>
-                <p class="text-muted">Hãy quay lại sau để đọc những bài viết mới nhất!</p>
+            <p class="loading-text">Đang tải bài viết...</p>
+        </div>
+    }
+    else if (!filteredArticles.Any())
+    {
+        <div class="empty-section">
+            <div class="empty-icon">
+                <i class="fas fa-file-alt"></i>
             </div>
-        }
-        else
-        {
-            <div class="articles-grid">
-                @foreach (var article in articles)
+            <h4 class="empty-title">
+                @if (selectedCategoryId == 0)
                 {
-                    <div class="article-card" @onclick="() => ViewArticle(article)">
-                        <div class="article-card-content">
-                            <div class="article-card-meta">
-                                <span class="category-tag">@article.CategoryName</span>
-                                <span class="date-tag">@article.CreatedAt.ToString("dd/MM/yyyy")</span>
-                            </div>
-                            <h3 class="article-card-title">@article.Title</h3>
-                            <div class="article-card-excerpt">
-                                @GetExcerpt(article.Content)
-                            </div>
-                            <div class="article-card-footer">
-                                <span class="read-more">
-                                    Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
-                                </span>
+                    <span>Chưa có bài viết nào</span>
+                }
+                else
+                {
+                    <span>Không có bài viết trong chủ đề này</span>
+                }
+            </h4>
+            <p class="empty-description">
+                @if (selectedCategoryId == 0)
+                {
+                    <span>Hãy quay lại sau để đọc những bài viết mới nhất!</span>
+                }
+                else
+                {
+                    <span>Hãy thử chọn chủ đề khác hoặc xem tất cả bài viết.</span>
+                }
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="articles-grid">
+            @foreach (var article in filteredArticles)
+            {
+                <div class="article-card" @onclick="() => ViewArticle(article)">
+                    @if (!string.IsNullOrEmpty(article.ThumbnailURL))
+                    {
+                        <div class="article-card-image">
+                            <img src="@article.ThumbnailURL" alt="@article.Title" />
+                            <div class="image-overlay">
+                                <i class="fas fa-eye"></i>
                             </div>
                         </div>
+                    }
+                    else
+                    {
+                        <div class="article-card-placeholder">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                    }
+                    <div class="article-card-content">
+                        <div class="article-card-meta">
+                            <span class="category-tag">
+                                <i class="fas fa-tag me-1"></i>@article.CategoryName
+                            </span>
+                            <span class="date-tag">
+                                <i class="fas fa-calendar me-1"></i>@article.CreatedAt.ToString("dd/MM/yyyy")
+                            </span>
+                        </div>
+                        <h3 class="article-card-title">@article.Title</h3>
+                        <div class="article-card-excerpt">
+                            @GetExcerpt(article.Content)
+                        </div>
+                        <div class="article-card-footer">
+                            <span class="read-more">
+                                Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+                            </span>
+                            <span class="reading-time">
+                                <i class="fas fa-clock me-1"></i>@GetReadingTime(article.Content) phút
+                            </span>
+                        </div>
                     </div>
-                }
-            </div>
-        }
-    </div>
+                </div>
+            }
+        </div>
+    }
 }
 
 @code {
     private List<BioWeb.Shared.Models.DTOs.ArticleDto> articles = new();
+    private List<BioWeb.Shared.Models.DTOs.CategoryDto> categories = new();
+    private List<BioWeb.Shared.Models.DTOs.ArticleDto> filteredArticles = new();
     private bool isLoading = true;
     private bool showArticleDetail = false;
+    private int selectedCategoryId = 0;
 
     private BioWeb.Shared.Models.DTOs.ArticleDto? selectedArticle = null;
 
@@ -118,11 +190,15 @@ else
 
         try
         {
-            // Load articles
+            // Load articles and categories
             articles = await ApiService.GetPublishedArticlesAsync();
+            categories = await ApiService.GetCategoriesAsync();
 
             // Sort articles by date
             articles = articles.OrderByDescending(a => a.CreatedAt).ToList();
+
+            // Initialize filtered articles
+            filteredArticles = articles;
         }
         catch (Exception ex)
         {
@@ -133,6 +209,22 @@ else
             isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private void FilterByCategory(int categoryId)
+    {
+        selectedCategoryId = categoryId;
+
+        if (categoryId == 0)
+        {
+            filteredArticles = articles;
+        }
+        else
+        {
+            filteredArticles = articles.Where(a => a.CategoryID == categoryId).ToList();
+        }
+
+        StateHasChanged();
     }
 
 
@@ -164,6 +256,20 @@ else
         return plainText.Length > 150 ? plainText.Substring(0, 150) + "..." : plainText;
     }
 
+    private int GetReadingTime(string content)
+    {
+        if (string.IsNullOrEmpty(content))
+            return 1;
+
+        // Remove HTML tags and count words
+        var plainText = System.Text.RegularExpressions.Regex.Replace(content, "<.*?>", "");
+        var wordCount = plainText.Split(new char[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+        // Average reading speed is 200 words per minute
+        var readingTime = Math.Max(1, (int)Math.Ceiling(wordCount / 200.0));
+        return readingTime;
+    }
+
     private async Task ShareOnFacebook(BioWeb.Shared.Models.DTOs.ArticleDto article)
     {
         try
@@ -181,147 +287,471 @@ else
         }
     }
 
+    private async Task ShareOnTwitter(BioWeb.Shared.Models.DTOs.ArticleDto article)
+    {
+        try
+        {
+            var baseUrl = await JSRuntime.InvokeAsync<string>("eval", "window.location.origin");
+            var articleUrl = $"{baseUrl}/blog?article={article.ArticleID}";
+            var shareText = $"{article.Title} - {GetExcerpt(article.Content)}";
+            var shareUrl =
+            $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}&url={Uri.EscapeDataString(articleUrl)}";
+            await JSRuntime.InvokeVoidAsync("window.open", shareUrl, "_blank");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Share error: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Không thể chia sẻ lúc này. Vui lòng thử lại sau.");
+        }
+    }
 
+    private async Task ShareOnLinkedIn(BioWeb.Shared.Models.DTOs.ArticleDto article)
+    {
+        try
+        {
+            var baseUrl = await JSRuntime.InvokeAsync<string>("eval", "window.location.origin");
+            var articleUrl = $"{baseUrl}/blog?article={article.ArticleID}";
+            var shareUrl = $"https://www.linkedin.com/sharing/share-offsite/?url={Uri.EscapeDataString(articleUrl)}";
+            await JSRuntime.InvokeVoidAsync("window.open", shareUrl, "_blank");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Share error: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Không thể chia sẻ lúc này. Vui lòng thử lại sau.");
+        }
+    }
 }
 
 <style>
-    /* Blog Container */
+    /* 🎨 Enhanced Blog Styles */
     .blog-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
+        padding: 0;
         color: white;
     }
 
-    .blog-header {
+    /* Blog Hero Section */
+    .blog-hero {
         text-align: center;
-        margin-bottom: 40px;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0.05) 100%);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
-    .page-title {
+    .blog-title {
+        font-family: 'Red Hat Mono', monospace;
+        font-size: 3rem;
         font-weight: 700;
-        margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #12C2E9, #C471ED, #F64F59);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: none;
     }
 
-    .page-description {
-        font-size: 1.1rem;
+    .blog-subtitle {
+        font-size: 1.2rem;
         opacity: 0.9;
-        margin-bottom: 0;
+        margin-bottom: 2rem;
+        font-weight: 400;
     }
 
+    .blog-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
 
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-weight: 500;
+    }
+
+    .stat-item i {
+        color: #12C2E9;
+        font-size: 1.1rem;
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .filter-title {
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        font-size: 1.2rem;
+    }
+
+    .filter-count {
+        background: linear-gradient(135deg, #12C2E9, #C471ED);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(18, 194, 233, 0.3);
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .filter-chip {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+    }
+
+    .filter-chip:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .filter-chip.active {
+        background: linear-gradient(135deg, #12C2E9, #C471ED);
+        border-color: transparent;
+        box-shadow: 0 8px 30px rgba(18, 194, 233, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .chip-count {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .filter-chip.active .chip-count {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Loading and Empty States */
+    .loading-section,
+    .empty-section {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .loading-spinner {
+        margin-bottom: 1rem;
+    }
+
+    .loading-text {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        margin: 0;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.3);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-title {
+        color: white;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .empty-description {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        margin: 0;
+    }
 
     /* Articles Grid */
     .articles-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 25px;
-        margin-top: 30px;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
     }
 
     .article-card {
         background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        height: fit-content;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        position: relative;
     }
 
     .article-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px);
         background: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
     }
 
+    .article-card-image {
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+        position: relative;
+    }
 
+    .article-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .article-card:hover .article-card-image img {
+        transform: scale(1.1);
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .article-card:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .image-overlay i {
+        color: white;
+        font-size: 2rem;
+    }
+
+    .article-card-placeholder {
+        width: 100%;
+        height: 220px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 3rem;
+    }
 
     .article-card-content {
-        padding: 20px;
+        padding: 1.5rem;
     }
 
     .article-card-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: 1rem;
         font-size: 0.85rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
     .category-tag {
-        background: rgba(74, 144, 226, 0.3);
+        background: linear-gradient(135deg, #12C2E9, #C471ED);
         color: white;
-        padding: 4px 12px;
-        border-radius: 15px;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
         font-weight: 500;
+        font-size: 0.8rem;
+        box-shadow: 0 4px 15px rgba(18, 194, 233, 0.3);
     }
 
     .date-tag {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.8rem;
     }
 
     .article-card-title {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         font-weight: 600;
-        margin-bottom: 15px;
+        margin-bottom: 1rem;
         line-height: 1.4;
         color: white;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .article-card-excerpt {
-        color: rgba(255, 255, 255, 0.9);
+        color: rgba(255, 255, 255, 0.8);
         line-height: 1.6;
-        margin-bottom: 20px;
+        margin-bottom: 1.5rem;
         font-size: 0.95rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .article-card-footer {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
     .read-more {
-        color: #4a90e2;
+        color: #12C2E9;
         font-weight: 500;
         font-size: 0.9rem;
-        transition: color 0.3s ease;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
     }
 
     .article-card:hover .read-more {
-        color: #357abd;
+        color: #C471ED;
+        transform: translateX(5px);
+    }
+
+    .reading-time {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
     }
 
     /* Article Detail */
     .article-detail-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: white;
-        min-height: 100vh;
+        padding: 0;
+        color: white;
     }
 
-    .article-header {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 20px;
+    .article-detail-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-button {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .back-button:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+
+    .article-hero-image {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+    }
+
+    .article-hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .article-hero-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+        padding: 3rem 2rem 2rem;
+        color: white;
+    }
+
+    .article-header-no-image {
+        padding: 3rem 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
     }
 
     .article-title {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #333;
-        margin-bottom: 15px;
+        color: white;
+        margin-bottom: 1rem;
         line-height: 1.3;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .article-meta {
         display: flex;
-        gap: 20px;
-        color: #666;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
         font-size: 0.9rem;
     }
 
@@ -331,75 +761,166 @@ else
     }
 
     .article-category {
-        background: #f8f9fa;
-        padding: 5px 12px;
-        border-radius: 15px;
-        color: #495057;
+        background: linear-gradient(135deg, #12C2E9, #C471ED);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        color: white;
         font-weight: 500;
+        box-shadow: 0 4px 15px rgba(18, 194, 233, 0.3);
+    }
+
+    .article-date {
+        color: rgba(255, 255, 255, 0.8);
     }
 
     .article-content {
-        margin-top: 30px;
-    }
-
-    .article-thumbnail {
-        width: 100%;
-        max-height: 400px;
-        object-fit: cover;
-        border-radius: 10px;
+        padding: 2rem;
     }
 
     .article-body {
         font-size: 1.1rem;
         line-height: 1.8;
-        color: #333;
+        color: white;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .article-body h1,
     .article-body h2,
     .article-body h3 {
-        margin-top: 30px;
-        margin-bottom: 15px;
-        color: #2c3e50;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        color: white;
+        font-weight: 600;
+    }
+
+    .article-body h1 {
+        font-size: 2rem;
+    }
+
+    .article-body h2 {
+        font-size: 1.5rem;
+    }
+
+    .article-body h3 {
+        font-size: 1.25rem;
     }
 
     .article-body p {
-        margin-bottom: 20px;
+        margin-bottom: 1.5rem;
+        color: rgba(255, 255, 255, 0.9);
     }
 
     .article-body img {
         max-width: 100%;
         height: auto;
-        border-radius: 8px;
-        margin: 20px 0;
+        border-radius: 15px;
+        margin: 2rem 0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .article-body blockquote {
+        background: rgba(255, 255, 255, 0.1);
+        border-left: 4px solid #12C2E9;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 15px 15px 0;
+        font-style: italic;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .article-body code {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        color: #12C2E9;
+    }
+
+    .article-body pre {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+        border-radius: 15px;
+        overflow-x: auto;
+        margin: 2rem 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Share Section */
     .share-section {
-        border-top: 1px solid #eee;
-        padding-top: 30px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
     }
 
     .share-title {
-        color: #333;
-        margin-bottom: 20px;
+        color: white;
+        margin-bottom: 1.5rem;
         font-weight: 600;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .share-buttons {
         display: flex;
-        gap: 15px;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-facebook,
+    .btn-twitter,
+    .btn-linkedin {
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .btn-facebook {
-        background: #1877f2;
-        border-color: #1877f2;
+        background: linear-gradient(135deg, #1877F2, #166FE5);
         color: white;
+        box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
     }
 
     .btn-facebook:hover {
-        background: #166fe5;
-        border-color: #166fe5;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(24, 119, 242, 0.4);
+        color: white;
+    }
+
+    .btn-twitter {
+        background: linear-gradient(135deg, #1DA1F2, #0d8bd9);
+        color: white;
+        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+    }
+
+    .btn-twitter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(29, 161, 242, 0.4);
+        color: white;
+    }
+
+    .btn-linkedin {
+        background: linear-gradient(135deg, #0077B5, #005885);
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 119, 181, 0.3);
+    }
+
+    .btn-linkedin:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 119, 181, 0.4);
         color: white;
     }
 
@@ -407,27 +928,91 @@ else
 
     /* Responsive Design */
     @@media (max-width: 768px) {
-        .blog-container {
-            padding: 15px;
+        .blog-title {
+            font-size: 2rem;
+        }
+
+        .blog-hero {
+            padding: 2rem 1rem;
+        }
+
+        .blog-stats {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .filter-section {
+            padding: 1.5rem;
+        }
+
+        .filter-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .filter-buttons {
+            justify-content: flex-start;
         }
 
         .articles-grid {
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 1.5rem;
         }
 
         .article-card-content {
-            padding: 15px;
+            padding: 1rem;
         }
 
         .article-title {
             font-size: 2rem;
         }
 
+        .article-hero-image {
+            height: 250px;
+        }
 
+        .article-hero-overlay {
+            padding: 2rem 1rem 1rem;
+        }
+
+        .article-content {
+            padding: 1rem;
+        }
+
+        .article-body {
+            padding: 1rem;
+            font-size: 1rem;
+        }
 
         .share-buttons {
             flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-facebook,
+        .btn-twitter,
+        .btn-linkedin {
+            width: 200px;
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .blog-title {
+            font-size: 1.5rem;
+        }
+
+        .filter-chip {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .article-card-title {
+            font-size: 1.2rem;
+        }
+
+        .article-title {
+            font-size: 1.5rem;
         }
     }
 </style>

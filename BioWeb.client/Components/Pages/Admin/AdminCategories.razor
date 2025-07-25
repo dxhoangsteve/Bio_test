@@ -82,13 +82,6 @@
                                     <!-- Category Content -->
                                     <div class="category-content">
                                         <h5>@category.CategoryName</h5>
-                                        @if (!string.IsNullOrEmpty(category.Description))
-                                        {
-                                            <p class="text-muted">@category.Description</p>
-                                        }
-                                        <div class="category-meta">
-                                            <small class="text-muted">ID: @category.CategoryID</small>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -129,16 +122,9 @@
                             
                             <div class="mb-3">
                                 <label class="form-label">Tên Category *</label>
-                                <InputText @bind-Value="currentCategory.CategoryName" class="form-control" 
+                                <InputText @bind-Value="currentCategory.CategoryName" class="form-control"
                                     placeholder="Nhập tên category" />
                                 <ValidationMessage For="() => currentCategory.CategoryName" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Mô tả</label>
-                                <InputTextArea @bind-Value="currentCategory.Description" class="form-control" rows="3" 
-                                    placeholder="Nhập mô tả cho category (tùy chọn)" />
-                                <ValidationMessage For="() => currentCategory.Description" />
                             </div>
 
                             <div class="modal-footer">

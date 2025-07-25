@@ -61,78 +61,154 @@
             <div class="col-12">
                 @if (isLoading)
                 {
-                    <div class="text-center p-4">
-                        <i class="fas fa-spinner fa-spin fa-2x"></i>
-                        <p class="mt-2">Đang tải articles...</p>
+                    <div class="loading-section">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        </div>
+                        <p class="loading-text">Đang tải articles...</p>
                     </div>
                 }
                 else if (articles.Any())
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Tiêu đề</th>
-                                    <th>Category</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var article in articles)
-                                {
-                                    <tr>
-                                        <td>@article.ArticleID</td>
-                                        <td>
-                                            <div class="article-title">
-                                                @article.Title
-                                                @if (!string.IsNullOrEmpty(article.ThumbnailURL))
-                                                {
-                                                    <i class="fas fa-image text-info ms-2" title="Có thumbnail"></i>
-                                                }
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">@article.CategoryName</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-@(article.IsPublished ? "success" : "warning")">
-                                                @(article.IsPublished ? "Published" : "Draft")
+                    <!-- Articles Stats -->
+                    <div class="articles-stats mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-newspaper"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h5>@articles.Count</h5>
+                                        <p>Tổng bài viết</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon published">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h5>@articles.Count(a => a.IsPublished)</h5>
+                                        <p>Đã xuất bản</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon draft">
+                                        <i class="fas fa-edit"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h5>@articles.Count(a => !a.IsPublished)</h5>
+                                        <p>Bản nháp</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-icon image">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h5>@articles.Count(a => !string.IsNullOrEmpty(a.ThumbnailURL))</h5>
+                                        <p>Có hình ảnh</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Articles Grid -->
+                    <div class="articles-admin-grid">
+                        @foreach (var article in articles)
+                        {
+                            <div class="article-admin-card">
+                                <!-- Article Header -->
+                                <div class="article-admin-header">
+                                    <div class="article-id">
+                                        <span class="id-badge">#@article.ArticleID</span>
+                                    </div>
+                                    <div class="article-status">
+                                        @if (article.IsPublished)
+                                        {
+                                            <span class="status-badge published">
+                                                <i class="fas fa-eye me-1"></i>Đã xuất bản
                                             </span>
-                                        </td>
-                                        <td>@article.CreatedAt.ToString("dd/MM/yyyy")</td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <button class="btn btn-sm btn-outline-primary"
-                                                    @onclick="() => ViewArticle(article)">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-warning" @onclick="() => EditArticle(article)">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-info" @onclick="() => TogglePublish(article)">
-                                                    <i class="fas fa-@(article.IsPublished ? "eye-slash" : "eye")"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteArticle(article)">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge draft">
+                                                <i class="fas fa-edit me-1"></i>Bản nháp
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Article Content -->
+                                <div class="article-admin-content">
+                                    @if (!string.IsNullOrEmpty(article.ThumbnailURL))
+                                    {
+                                        <div class="article-thumbnail">
+                                            <img src="@article.ThumbnailURL" alt="@article.Title" />
+                                            <div class="thumbnail-overlay">
+                                                <i class="fas fa-image"></i>
                                             </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="article-thumbnail-placeholder">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                    }
+
+                                    <div class="article-info">
+                                        <h5 class="article-title">@article.Title</h5>
+                                        <div class="article-meta">
+                                            <span class="category-tag">
+                                                <i class="fas fa-tag me-1"></i>@article.CategoryName
+                                            </span>
+                                            <span class="date-tag">
+                                                <i class="fas fa-calendar me-1"></i>@article.CreatedAt.ToString("dd/MM/yyyy")
+                                            </span>
+                                        </div>
+                                        <div class="article-excerpt">
+                                            @GetExcerpt(article.Content)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Article Actions -->
+                                <div class="article-admin-actions">
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => EditArticle(article)">
+                                        <i class="fas fa-edit me-1"></i>Sửa
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ViewArticle(article)">
+                                        <i class="fas fa-eye me-1"></i>Xem
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning" @onclick="() => TogglePublish(article)">
+                                        <i class="fas fa-@(article.IsPublished ? "eye-slash" : "eye") me-1"></i>
+                                        @(article.IsPublished ? "Ẩn" : "Hiện")
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteArticle(article)">
+                                        <i class="fas fa-trash me-1"></i>Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
                 else
                 {
-                    <div class="text-center p-5">
-                        <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
-                        <h4>Chưa có articles nào</h4>
-                        <p class="text-muted">Hãy thêm bài viết đầu tiên của bạn!</p>
-                        <button class="btn btn-primary" @onclick="ShowAddModal">
+                    <div class="empty-section">
+                        <div class="empty-icon">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <h4 class="empty-title">Chưa có articles nào</h4>
+                        <p class="empty-description">Hãy thêm bài viết đầu tiên của bạn!</p>
+                        <button class="btn btn-primary btn-lg" @onclick="ShowAddModal">
                             <i class="fas fa-plus me-2"></i>Thêm Article
                         </button>
                     </div>
@@ -187,7 +263,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Thumbnail</label>
-                                <FileUploadComponent UploadEndpoint="/api/Upload/image" AcceptedTypes="image/*"
+                                <FileUploadComponent UploadEndpoint="/api/Upload/article-thumbnail" AcceptedTypes="image/*"
                                     MaxSizeInMB="5" CurrentImageUrl="@currentArticle.ThumbnailURL" Label="Chọn thumbnail"
                                     OnUploadSuccess="OnThumbnailUploaded" OnRemoveImage="OnThumbnailRemoved" />
                             </div>
@@ -302,6 +378,16 @@
         Navigation.NavigateTo($"/blog/{article.ArticleID}");
     }
 
+    private string GetExcerpt(string content)
+    {
+        if (string.IsNullOrEmpty(content))
+            return "Không có nội dung...";
+
+        // Remove HTML tags and get first 100 characters
+        var plainText = System.Text.RegularExpressions.Regex.Replace(content, "<.*?>", "");
+        return plainText.Length > 100 ? plainText.Substring(0, 100) + "..." : plainText;
+    }
+
     private async Task TogglePublish(ArticleDto article)
     {
         var updatedArticle = new ArticleDto
@@ -389,54 +475,314 @@
 }
 
 <style>
+    /* 🎨 Enhanced Admin Articles Styles */
     .admin-controls-panel {
         background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
+        border-radius: 15px;
         padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
-    .admin-table {
+    /* Loading Section */
+    .loading-section {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .loading-spinner {
+        margin-bottom: 1.5rem;
+    }
+
+    .loading-text {
+        color: white;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    /* Empty Section */
+    .empty-section {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.3);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-title {
+        color: white;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .empty-description {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 2rem;
+    }
+
+    /* Stats Cards */
+    .articles-stats .stat-card {
         background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .articles-stats .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-icon.published {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .stat-icon.draft {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+    }
+
+    .stat-icon.image {
+        background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    }
+
+    .stat-icon i {
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .stat-content h5 {
+        color: white;
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .stat-content p {
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    /* Articles Grid */
+    .articles-admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .article-admin-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .article-admin-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Article Header */
+    .article-admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .id-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-badge {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+
+    .status-badge.published {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+
+    .status-badge.draft {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+    }
+
+    /* Article Content */
+    .article-admin-content {
+        display: flex;
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+
+    .article-thumbnail {
+        width: 120px;
+        height: 80px;
         border-radius: 10px;
         overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
     }
 
-    .admin-table thead {
-        background: rgba(255, 255, 255, 0.2);
+    .article-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
     }
 
-    .admin-table th {
-        border: none;
+    .article-admin-card:hover .article-thumbnail img {
+        transform: scale(1.1);
+    }
+
+    .thumbnail-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .article-admin-card:hover .thumbnail-overlay {
+        opacity: 1;
+    }
+
+    .thumbnail-overlay i {
         color: white;
+        font-size: 1.2rem;
+    }
+
+    .article-thumbnail-placeholder {
+        width: 120px;
+        height: 80px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .article-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .article-info .article-title {
+        color: white;
+        font-size: 1.1rem;
         font-weight: 600;
-        padding: 1rem;
-    }
-
-    .admin-table td {
-        border: none;
-        color: white;
-        padding: 1rem;
-        vertical-align: middle;
-    }
-
-    .admin-table tbody tr {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        transition: background-color 0.3s ease;
-    }
-
-    .admin-table tbody tr:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .article-title {
-        max-width: 300px;
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    }
+
+    .article-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .category-tag {
+        background: linear-gradient(135deg, #12C2E9, #C471ED);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .date-tag {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.75rem;
+    }
+
+    .article-excerpt {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.85rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Article Actions */
+    .article-admin-actions {
+        padding: 1rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .article-admin-actions .btn {
+        border-radius: 20px;
+        font-size: 0.8rem;
+        padding: 0.4rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border-width: 1px;
+    }
+
+    .article-admin-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     .modal-content {
@@ -468,25 +814,56 @@
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
 
-    .btn-group .btn {
-        margin-right: 2px;
-    }
-
-    .btn-group .btn:last-child {
-        margin-right: 0;
-    }
-
+    /* Responsive Design */
     @@media (max-width: 768px) {
-        .admin-table {
-            font-size: 0.875rem;
+        .articles-admin-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
         }
 
-        .article-title {
-            max-width: 150px;
+        .article-admin-content {
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        .btn-group .btn {
-            padding: 0.25rem 0.5rem;
+        .article-thumbnail,
+        .article-thumbnail-placeholder {
+            width: 100%;
+            height: 150px;
+        }
+
+        .article-admin-actions {
+            justify-content: center;
+        }
+
+        .article-admin-actions .btn {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .articles-stats .row {
+            gap: 1rem;
+        }
+
+        .articles-stats .col-md-3 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .article-admin-header {
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: center;
+        }
+
+        .article-admin-actions {
+            flex-direction: column;
+        }
+
+        .article-admin-actions .btn {
+            width: 100%;
         }
     }
 </style>

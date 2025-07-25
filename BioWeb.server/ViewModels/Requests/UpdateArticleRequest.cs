@@ -14,6 +14,8 @@ namespace BioWeb.Server.ViewModels.Requests
         [Required(ErrorMessage = "Nội dung bài viết phải có chứ")]
         public string Content { get; set; } = null!;
 
+        public string ThumbnailURL { get; set; } = "";
+
         public bool IsPublished { get; set; }
 
         [Required(ErrorMessage = "Category phải chọn")]

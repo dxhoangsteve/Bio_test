@@ -208,8 +208,11 @@ namespace BioWeb.Server.Controllers
         {
             try
             {
-                // Tăng view count
-                await _siteConfigService.IncrementViewCountAsync();
+                // Lấy IP của client
+                var clientIp = GetClientIpAddress();
+
+                // Tăng view count với IP tracking
+                await _siteConfigService.IncrementViewCountAsync(clientIp);
 
                 // Lấy thông tin site
                 var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
@@ -389,16 +392,16 @@ namespace BioWeb.Server.Controllers
         {
             try
             {
-                var config = await _siteConfigService.GetOrCreateDefaultConfigAsync();
-                config.ViewCount++;
-                config.UpdatedAt = DateTime.UtcNow;
+                // Lấy IP của client
+                var clientIp = GetClientIpAddress();
 
-                await _siteConfigService.UpdateSiteConfigurationAsync(config);
+                // Tăng view count với IP tracking
+                var success = await _siteConfigService.IncrementViewCountAsync(clientIp);
 
                 return Ok(new SiteSimpleResponse
                 {
                     Success = true,
-                    Message = "Đã tăng view count"
+                    Message = success ? "Đã tăng view count" : "View count không thay đổi (cooldown)"
                 });
             }
             catch (Exception ex)
@@ -409,6 +412,29 @@ namespace BioWeb.Server.Controllers
                     Message = $"Lỗi: {ex.Message}"
                 });
             }
+        }
+
+        /// <summary>
+        /// Lấy IP address của client
+        /// </summary>
+        private string GetClientIpAddress()
+        {
+            // Kiểm tra X-Forwarded-For header (cho proxy/load balancer)
+            var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(forwardedFor))
+            {
+                return forwardedFor.Split(',')[0].Trim();
+            }
+
+            // Kiểm tra X-Real-IP header
+            var realIp = Request.Headers["X-Real-IP"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(realIp))
+            {
+                return realIp;
+            }
+
+            // Fallback về RemoteIpAddress
+            return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         }
 
     }
