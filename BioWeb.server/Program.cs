@@ -11,9 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // 2.2. Đăng ký "Người quản lý kho" DbContext
-// Ra lệnh: "Khi ai đó cần ApplicationDbContext, hãy tạo nó và dùng chuỗi kết nối SQL Server này"
+// SQL Server to SQLite: Thay đổi từ UseSqlServer sang UseSqlite
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlite(connectionString));
 
 // 2.3. Không cần Identity nữa, sử dụng authentication đơn giản
 
@@ -52,6 +54,19 @@ builder.Services.AddScoped<BioWeb.Server.Services.ITokenService, BioWeb.Server.S
 
 // --- PHẦN 3: XÂY DỰNG ỨNG DỤNG ---
 var app = builder.Build();
+
+// SQL Server to SQLite: Tự động tạo database SQLite nếu chưa tồn tại
+// Thêm sau dòng 54 trong Program.cs
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+//     context.Database.EnsureCreated(); // Tạo database nếu chưa có
+// }
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.EnsureCreated(); // Tạo database và tables từ models
+}
 
 
 // --- PHẦN 4: TỰ ĐỘNG HÓA (CHẠY SEED DATA KHI ỨNG DỤNG KHỞI ĐỘNG) ---
