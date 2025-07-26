@@ -228,9 +228,61 @@ fi
 
 # Tạo database và chạy migrations
 echo "Starting migration process..."
-timeout 30 dotnet BioWeb.server.dll --migrate-database || {
-    echo "Warning: Migration timeout or failed, continuing..."
+
+# Thử nhiều cách để tạo database
+echo "Attempting database creation..."
+
+# Cách 1: Sử dụng dotnet ef
+if command -v dotnet-ef &> /dev/null; then
+    echo "Using dotnet-ef to create database..."
+    dotnet ef database update --no-build --verbose || echo "EF migration failed, trying alternative..."
+fi
+
+# Cách 2: Chạy app với migrate flag
+echo "Using application migration..."
+timeout 60 dotnet BioWeb.server.dll --migrate-database || {
+    echo "App migration timeout, trying manual approach..."
 }
+
+# Cách 3: Kiểm tra và tạo database thủ công nếu cần
+if [ ! -f "$INSTALL_DIR/data/BioWeb.db" ]; then
+    echo "Database not found, creating basic structure..."
+    sqlite3 $INSTALL_DIR/data/BioWeb.db << 'EOF'
+CREATE TABLE IF NOT EXISTS AdminUsers (
+    AdminID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Username TEXT NOT NULL UNIQUE,
+    PasswordHash TEXT NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT OR IGNORE INTO AdminUsers (AdminID, Username, PasswordHash)
+VALUES (1, 'temp', 'temp');
+EOF
+    echo "Basic database structure created"
+fi
+
+# Kiểm tra database có tồn tại không
+if [ -f "$INSTALL_DIR/data/BioWeb.db" ]; then
+    echo "✅ Database file exists"
+    # Kiểm tra bảng AdminUsers
+    if sqlite3 $INSTALL_DIR/data/BioWeb.db "SELECT name FROM sqlite_master WHERE type='table' AND name='AdminUsers';" | grep -q AdminUsers; then
+        echo "✅ AdminUsers table exists"
+    else
+        echo "❌ AdminUsers table missing, creating..."
+        sqlite3 $INSTALL_DIR/data/BioWeb.db << 'EOF'
+CREATE TABLE AdminUsers (
+    AdminID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Username TEXT NOT NULL UNIQUE,
+    PasswordHash TEXT NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO AdminUsers (AdminID, Username, PasswordHash) VALUES (1, 'temp', 'temp');
+EOF
+    fi
+else
+    echo "❌ Database creation failed"
+    exit 1
+fi
 
 # Cập nhật admin user trong database với password hash
 echo "👤 Updating admin user credentials..."
@@ -284,12 +336,34 @@ HASHED_PASSWORD=$(dotnet run "$ADMIN_PASSWORD")
 cd $INSTALL_DIR/server
 
 # Cập nhật database với password đã hash
-sqlite3 $INSTALL_DIR/data/BioWeb.db << EOF
+echo "Updating admin credentials in database..."
+
+# Kiểm tra xem có record AdminID = 1 không
+ADMIN_EXISTS=$(sqlite3 $INSTALL_DIR/data/BioWeb.db "SELECT COUNT(*) FROM AdminUsers WHERE AdminID = 1;")
+
+if [ "$ADMIN_EXISTS" -gt 0 ]; then
+    echo "Updating existing admin user..."
+    sqlite3 $INSTALL_DIR/data/BioWeb.db << EOF
 UPDATE AdminUsers SET
     Username = '$ADMIN_USERNAME',
     PasswordHash = '$HASHED_PASSWORD'
 WHERE AdminID = 1;
 EOF
+else
+    echo "Creating new admin user..."
+    sqlite3 $INSTALL_DIR/data/BioWeb.db << EOF
+INSERT INTO AdminUsers (AdminID, Username, PasswordHash)
+VALUES (1, '$ADMIN_USERNAME', '$HASHED_PASSWORD');
+EOF
+fi
+
+# Verify admin user was created/updated
+VERIFY_ADMIN=$(sqlite3 $INSTALL_DIR/data/BioWeb.db "SELECT Username FROM AdminUsers WHERE AdminID = 1;")
+if [ "$VERIFY_ADMIN" = "$ADMIN_USERNAME" ]; then
+    echo "✅ Admin user verified: $ADMIN_USERNAME"
+else
+    echo "❌ Admin user verification failed"
+fi
 
 # Cleanup
 rm -rf /tmp/HashPassword /tmp/hash_password.cs
