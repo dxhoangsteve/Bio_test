@@ -18,13 +18,13 @@ namespace BioWeb.Server.Controllers
         }
 
         /// <summary>
-        /// ⚠️ NGUY HIỂM: Xóa toàn bộ database và seed lại data mới
-        /// CHỈ HOẠT ĐỘNG TRONG DEVELOPMENT ENVIRONMENT
+        /// Xóa toàn bộ database và seed lại data mới
+        /// only development
         /// </summary>
         [HttpPost("force-seed")]
         public async Task<IActionResult> ForceSeed()
         {
-            // 🔒 BẢO VỆ: Chỉ cho phép trong Development environment
+            //Chỉ cho phép trong Development environment
             if (!_environment.IsDevelopment())
             {
                 return Forbid("Endpoint này chỉ khả dụng trong Development environment để bảo vệ dữ liệu production!");
@@ -51,7 +51,7 @@ namespace BioWeb.Server.Controllers
 
                 return Ok(new {
                     message = "Seed data xong!",
-                    warning = "⚠️ Toàn bộ dữ liệu cũ đã bị xóa và thay thế bằng dữ liệu mẫu",
+                    warning = "Toàn bộ dữ liệu cũ đã bị xóa và thay thế bằng dữ liệu mẫu",
                     environment = _environment.EnvironmentName
                 });
             }
@@ -66,15 +66,15 @@ namespace BioWeb.Server.Controllers
 
         /// <summary>
         /// Kiểm tra số lượng dữ liệu trong database
-        /// CHỈ HOẠT ĐỘNG TRONG DEVELOPMENT ENVIRONMENT
+        /// chỉ xử lý trên development
         /// </summary>
         [HttpGet("check-data")]
         public async Task<IActionResult> CheckData()
         {
-            // 🔒 BẢO VỆ: Chỉ cho phép trong Development environment
+            // Chỉ cho phép trong Development environment
             if (!_environment.IsDevelopment())
             {
-                return Forbid("Endpoint này chỉ khả dụng trong Development environment để bảo vệ thông tin hệ thống!");
+                return Forbid("production kiểm tra để bảo vệ hệ thống");
             }
 
             using var scope = _serviceProvider.CreateScope();

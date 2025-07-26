@@ -31,12 +31,24 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient", policy =>
     {
-        policy.WithOrigins(
-                "https://localhost:7255", // Client HTTPS port
-                "https://localhost:7256", // Client HTTPS port (backup)
-                "http://localhost:5101",  // Client HTTP port
-                "http://localhost:5102"   // Client HTTP port (backup)
-            )
+        // Lấy domain từ environment variable hoặc sử dụng localhost cho development
+        var allowedOrigins = new List<string>
+        {
+            "https://0.0.0.0:7255",   // Client HTTPS port (Development)
+            "https://localhost:7255",  // Client HTTPS port (Development)
+            "https://0.0.0.0:8443",   // Client HTTPS port (Production Test Alternative)
+            "https://localhost:8443"   // Client HTTPS port (Production Test Alternative)
+        };
+
+        // Thêm production domain nếu có
+        var productionDomain = builder.Configuration["ProductionDomain"];
+        if (!string.IsNullOrEmpty(productionDomain))
+        {
+            allowedOrigins.Add($"https://{productionDomain}");
+            allowedOrigins.Add($"https://www.{productionDomain}");
+        }
+
+        policy.WithOrigins(allowedOrigins.ToArray())
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();

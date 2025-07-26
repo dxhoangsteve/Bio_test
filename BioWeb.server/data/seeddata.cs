@@ -35,8 +35,8 @@ namespace BioWeb.Server.Data
             }
             var adminUser = new AdminUser
             {
-                Username = "dxhoangsteve02052004",
-                PasswordHash = PasswordService.HashPassword("221211a5A5*"), // Hash password
+                Username = "admin",  // Default username - sẽ được sửa bởi deployment script
+                PasswordHash = PasswordService.HashPassword("123"), // Default password - sẽ được sửa bởi deployment script
                 LastLogin = null
             };
 
@@ -56,7 +56,7 @@ namespace BioWeb.Server.Data
             {
                 FullName = "Đinh Xuân Hoàng",
                 JobTitle = "Full-stack Developer",
-                AvatarURL = "/uploads/avatars/default-avatar.jpg", // Placeholder avatar
+                AvatarURL = "", // Placeholder avatar
                 BioSummary = "Tôi là Đinh Xuân Hoàng, lập trình viên mobile và đang trên con đường học tập web để trở thành fullstack developer sau đó là AI. Tôi luôn cố gắng học hỏi công nghệ sử dụng mới để biết thêm nhiều kiến thức. Cảm ơn bạn đã xem bio này!!",
                 Email = "sterbe2k4@gmail.com",
                 PhoneNumber = "+84 329474859",
@@ -64,7 +64,7 @@ namespace BioWeb.Server.Data
                 GitHubURL = "https://github.com/dxhoangsteve",
                 LinkedInURL = "",
                 FacebookURL = "https://www.facebook.com/Wikileakss",
-                CV_FilePath = "/uploads/cv/sample-cv.pdf", // Placeholder CV
+                CV_FilePath = "", // Placeholder CV
                 UpdatedAt = DateTime.UtcNow
             };
             context.SiteConfigurations.Add(siteConfig);
@@ -81,9 +81,9 @@ namespace BioWeb.Server.Data
             }
             var categories = new List<Category>
             {
-                new Category { CategoryName = "Lập Trình" },
-                new Category { CategoryName = "Hướng Dẫn" },
-                new Category { CategoryName = "Chia Sẻ Cá Nhân" }
+                new Category { CategoryName = "Lập Trình" }
+                // new Category { CategoryName = "Hướng Dẫn" },
+                // new Category { CategoryName = "Chia Sẻ Cá Nhân" }
             };
             context.Categories.AddRange(categories);
             await context.SaveChangesAsync();
@@ -105,7 +105,7 @@ namespace BioWeb.Server.Data
                     Description = "Website cá nhân được xây dựng bằng ASP.NET Core và Blazor",
                     GitHubURL = "https://github.com/dxhoangsteve/Bio_test",
                     ProjectURL = "",
-                    ThumbnailURL = "/uploads/projects/bio-website-thumb.jpg",
+                    ThumbnailURL = "",
                     Technologies = "ASP.NET Core, Blazor, Entity Framework, SQL Server",
                     DisplayOrder = 1,
                     IsPublished = true
@@ -116,7 +116,7 @@ namespace BioWeb.Server.Data
                     Description = "Ứng dụng mobile demo sử dụng React Native",
                     GitHubURL = "https://github.com/thongle321/CKCQUIZZ",
                     ProjectURL = "",
-                    ThumbnailURL = "/uploads/projects/ckcquizz-thumb.jpg",
+                    ThumbnailURL = "",
                     Technologies = "VueJS, .Net core 9, SQL Server, Flutter",
                     DisplayOrder = 2,
                     IsPublished = true
@@ -141,20 +141,21 @@ namespace BioWeb.Server.Data
             {
                 new Article
                 {
-                    Title = "Chào mừng đến với Bio Website",
-                    Content = "Đây là bài viết đầu tiên trên website cá nhân của tôi. Website được xây dựng bằng ASP.NET Core và Blazor.",
+                    Title = "Về mình - Đinh Xuân Hoàng",
+                    Content = "Xuất phát điểm của mình ở trường là mobile developer. Nhưng sau này mình rất hứng thú với web developer, nên mình đang cố gắng từng chút một học web backend do đã làm quen từ trước rồi sau đó là frontend và cuối cùng là fullstack developer."
+                    +"Đây là trang blog mình tạo ra với ngôn ngữ C# cho cả backend lẫn frontend. Frontend mình sử dụng framework Blazor để làm trang web này. Backend mình sử dụng ASP.NET Core để làm API cho trang web này.",
                     IsPublished = true,
                     CreatedAt = DateTime.UtcNow,
                     CategoryID = techCategoryId
-                },
-                new Article
-                {
-                    Title = "Hành trình học lập trình",
-                    Content = "Chia sẻ về hành trình học lập trình từ mobile development đến web development và AI.",
-                    IsPublished = true,
-                    CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    CategoryID = techCategoryId
                 }
+                // new Article
+                // {
+                //     Title = "Hành trình học lập trình",
+                //     Content = "",
+                //     IsPublished = true,
+                //     CreatedAt = DateTime.UtcNow.AddDays(-1),
+                //     CategoryID = techCategoryId
+                // }
             };
 
             context.Articles.AddRange(articles);

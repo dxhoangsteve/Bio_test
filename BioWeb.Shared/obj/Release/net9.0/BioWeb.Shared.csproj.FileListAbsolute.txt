@@ -1,0 +1,12 @@
+/home/sterb/dev/Bio_test/BioWeb.Shared/bin/Release/net9.0/BioWeb.Shared.deps.json
+/home/sterb/dev/Bio_test/BioWeb.Shared/bin/Release/net9.0/BioWeb.Shared.dll
+/home/sterb/dev/Bio_test/BioWeb.Shared/bin/Release/net9.0/BioWeb.Shared.pdb
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/BioWeb.Shared.GeneratedMSBuildEditorConfig.editorconfig
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/BioWeb.Shared.AssemblyInfoInputs.cache
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/BioWeb.Shared.AssemblyInfo.cs
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/BioWeb.Shared.csproj.CoreCompileInputs.cache
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/BioWeb.Shared.sourcelink.json
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/BioWeb.Shared.dll
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/refint/BioWeb.Shared.dll
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/BioWeb.Shared.pdb
+/home/sterb/dev/Bio_test/BioWeb.Shared/obj/Release/net9.0/ref/BioWeb.Shared.dll
