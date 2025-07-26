@@ -1783,7 +1783,7 @@
     ]
   },
   "packageFolders": {
-    "/root/.nuget/packages/": {}
+    "/home/sterb/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
@@ -1791,11 +1791,11 @@
       "projectUniqueName": "/home/sterb/dev/Bio_test/BioWeb.client/BioWeb.client.csproj",
       "projectName": "BioWeb.client",
       "projectPath": "/home/sterb/dev/Bio_test/BioWeb.client/BioWeb.client.csproj",
-      "packagesPath": "/root/.nuget/packages/",
+      "packagesPath": "/home/sterb/.nuget/packages/",
       "outputPath": "/home/sterb/dev/Bio_test/BioWeb.client/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/root/.nuget/NuGet/NuGet.Config"
+        "/home/sterb/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"

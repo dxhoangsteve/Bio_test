@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "BioWeb.client",
   "resources": {
-    "hash": "sha256-UsP4pmEtT3KKUq/5ePXQcjGWbfhNMnhKNWRHC0Ad6yM=",
+    "hash": "sha256-f87NBsHiVFy4BO+3hkYoDPZNF0NVBxsyxEZtCPqbPMw=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Authorization.phaa9r44xv.wasm": "Microsoft.AspNetCore.Authorization.wasm",
       "Microsoft.AspNetCore.Components.4o2vz6uw5j.wasm": "Microsoft.AspNetCore.Components.wasm",
@@ -201,10 +201,10 @@
       "icudt_CJK.tjcz0u77k5.dat": "icudt_CJK.dat",
       "icudt_EFIGS.tptq2av103.dat": "icudt_EFIGS.dat",
       "icudt_no_CJK.lfu7j35m59.dat": "icudt_no_CJK.dat",
-      "BioWeb.Shared.akw4w8d194.wasm": "BioWeb.Shared.wasm",
-      "BioWeb.Shared.p2iwlp8pss.pdb": "BioWeb.Shared.pdb",
-      "BioWeb.client.ij4ap1k8tx.wasm": "BioWeb.client.wasm",
-      "BioWeb.client.gkjwzdfkwx.pdb": "BioWeb.client.pdb"
+      "BioWeb.Shared.osojom51bm.wasm": "BioWeb.Shared.wasm",
+      "BioWeb.Shared.ttmoirtn8j.pdb": "BioWeb.Shared.pdb",
+      "BioWeb.client.33g1519mrh.wasm": "BioWeb.client.wasm",
+      "BioWeb.client.pq2s7gaogg.pdb": "BioWeb.client.pdb"
     },
     "jsModuleNative": {
       "dotnet.native.rtblh4npr3.js": "sha256-HyBzcYNpT2l19+f1bpjNOa1oFoLe3K4JIQ6GsFK5m6I="
@@ -414,12 +414,12 @@
       "WindowsBase.u25hol0de4.wasm": "sha256-CgB28KCiYKHd4yK6IM0PJ526P7IbRCpNkGTqn+cLwxs=",
       "mscorlib.brg9pkj3je.wasm": "sha256-FzZwzxUYYyg3qxc7Km8r50UKAmRWrIeckSFG1NTHKNU=",
       "netstandard.wuzd3f1y6v.wasm": "sha256-yAXc0deBIRkWTVXqADZfhgZtrxGgJCIbZYVtA0NjvdM=",
-      "BioWeb.Shared.akw4w8d194.wasm": "sha256-JjK4pi5NSyXm0OGXhNuPf02jGRmeqUFpgvqvmNlpEv8=",
-      "BioWeb.client.ij4ap1k8tx.wasm": "sha256-gi3t8ctu/g63o3zGIYbRNtcDglPulxvWyeaaQfoMJYc="
+      "BioWeb.Shared.osojom51bm.wasm": "sha256-SMTL9Zj/bncr1853EmKQXCC/gGF6KwHZAtyznH8vmIM=",
+      "BioWeb.client.33g1519mrh.wasm": "sha256-r+Cb9KkPvEsz8ajXgQBHgecRQz1AkGGeODHtOuIj+U4="
     },
     "pdb": {
-      "BioWeb.Shared.p2iwlp8pss.pdb": "sha256-f+OLnmtJxJrc1TwxVex5xudXriUVTF8Q6iTr/wTQhpk=",
-      "BioWeb.client.gkjwzdfkwx.pdb": "sha256-8I1K7T19yd+lRvrVZjGIyMZUiol52ejYKkgenvgiCf8="
+      "BioWeb.Shared.ttmoirtn8j.pdb": "sha256-kbeeVpmadvUmjEFoVmMbmprfR6RsNXc4iUojATrTHLw=",
+      "BioWeb.client.pq2s7gaogg.pdb": "sha256-H7wxpb9q7qOWgyrs1xvNKHdE4SsDHMN03LC7J7EOB5Q="
     }
   },
   "cacheBootResources": true,

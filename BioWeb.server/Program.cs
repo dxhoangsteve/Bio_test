@@ -37,12 +37,10 @@ builder.Services.AddCors(options =>
         // Lấy domain từ environment variable hoặc sử dụng localhost cho development
         var allowedOrigins = new List<string>
         {
-            "https://0.0.0.0:7255",   // Client HTTPS port (Development)
-            "https://localhost:7255",  // Client HTTPS port (Development)
-            "https://0.0.0.0:8443",   // Client HTTPS port (Production Test Alternative)
-            "https://localhost:8443",  // Client HTTPS port (Production Test Alternative)
-            "https://dxhoang.site",    // Production domain
-            "https://www.dxhoang.site" // Production domain with www
+            "https://0.0.0.0:7255",
+            "https://localhost:7255",
+            "http://localhost:7255",
+            "http://0.0.0.0:7255"
         };
 
         // Thêm production domain nếu có
