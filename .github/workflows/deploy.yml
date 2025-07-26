@@ -34,7 +34,6 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    environment: VPS_HOST
 
     steps:
     - name: Checkout
@@ -43,8 +42,8 @@ jobs:
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v1.0.0
       with:
-        host: ${{ vars.VPS_HOST }}
-        username: ${{ vars.VPS_USER }}
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
           cd /root/bioweb-production
