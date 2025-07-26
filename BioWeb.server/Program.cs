@@ -142,6 +142,9 @@ app.UseStaticFiles(new StaticFileOptions
 // Tìm đến Controller phù hợp để xử lý request
 app.MapControllers();
 
+// Health check endpoint
+app.MapGet("/health", () => "OK");
+
 // Map Blazor WebAssembly
 app.MapRazorPages();
 app.MapFallbackToFile("index.html");
