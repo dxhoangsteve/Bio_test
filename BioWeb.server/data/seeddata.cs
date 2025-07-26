@@ -35,8 +35,8 @@ namespace BioWeb.Server.Data
             }
             var adminUser = new AdminUser
             {
-                Username = "admin",  // Default username - sẽ được sửa bởi deployment script
-                PasswordHash = PasswordService.HashPassword("123"), // Default password - sẽ được sửa bởi deployment script
+                Username = "admin",  // Default username - có thể đổi thành tên bạn muốn
+                PasswordHash = PasswordService.HashPassword("BioWeb2024!"), // Password mạnh hơn
                 LastLogin = null
             };
 

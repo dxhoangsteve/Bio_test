@@ -30,42 +30,15 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
 
-  build-and-deploy:
+  deploy:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     environment: VPS_HOST
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./Dockerfile.production
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
 
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v1.0.0
@@ -75,20 +48,34 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         script: |
           cd /root/bioweb-production
-          
-          # Pull latest image
-          docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-          docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          
+
+          # Clone/update source code
+          if [ ! -d "source" ]; then
+            git clone https://github.com/${{ github.repository }} source
+          else
+            cd source
+            git fetch origin
+            git reset --hard origin/main
+            cd ..
+          fi
+
           # Stop current containers
-          docker-compose -f docker-compose.production.yml down
-          
+          docker-compose -f docker-compose.production.yml down || true
+
+          # Build new image directly on VPS
+          cd source
+          docker build -f Dockerfile.production -t bioweb:latest .
+          cd ..
+
+          # Update docker-compose to use local image
+          sed -i 's|image:.*|image: bioweb:latest|g' docker-compose.production.yml
+
           # Start with new image
           docker-compose -f docker-compose.production.yml up -d
-          
+
           # Clean up old images
           docker image prune -f
-          
+
           # Health check
           sleep 30
 

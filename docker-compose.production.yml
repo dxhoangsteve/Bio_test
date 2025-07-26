@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   bioweb:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-yourusername}/bioweb:latest
+    image: bioweb:latest
     container_name: bioweb-app
     restart: unless-stopped
     ports:
