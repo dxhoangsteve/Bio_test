@@ -4,32 +4,31 @@
 # BioWeb Production Deployment Script
 # ===================================================================
 # Script tự động deploy BioWeb lên production server
-# Chạy với quyền root: sudo ./deploy-production.sh
+# Chạy với quyền root: ./deploy-production.sh (đã login root)
 # ===================================================================
 
 set -e  # Exit on any error
 
-# Function để tự động nhập sudo password
+# Function để chạy lệnh (không cần sudo vì đã chạy với quyền root)
 auto_sudo() {
-    echo "$SUDO_PASSWORD" | sudo -S "$@"
+    "$@"
 }
 
 # ===================================================================
 # QUAN TRỌNG: CẤU HÌNH CẦN SỬA TRƯỚC KHI CHẠY
 # ===================================================================
 # TODO: Sửa các biến sau theo server của bạn:
-DOMAIN="yourdomain.com"                    # ⚠️  SỬA DOMAIN CỦA BẠN
-EMAIL="admin@yourdomain.com"               # ⚠️  SỬA EMAIL CỦA BẠN
-GIT_REPO="https://github.com/user/repo.git" # ⚠️  SỬA GIT REPO CỦA BẠN
-DB_PASSWORD="your_secure_password_here"    # ⚠️  SỬA PASSWORD DATABASE
-JWT_SECRET="your_super_secret_jwt_key_here" # ⚠️  SỬA JWT SECRET KEY
-SUDO_PASSWORD="1234"                       # ⚠️  SỬA SUDO PASSWORD CỦA BẠN
-ADMIN_USERNAME="admin"                     # ⚠️  SỬA ADMIN USERNAME
-ADMIN_PASSWORD="123"                       # ⚠️  SỬA ADMIN PASSWORD
+DOMAIN="dxhoang.site"                    # ⚠️  SỬA DOMAIN CỦA BẠN
+EMAIL="sterbe2k4@gmail.com"               # ⚠️  SỬA EMAIL CỦA BẠN
+JWT_SECRET="hLyhJGGdiaf83JyhdH" # ⚠️  SỬA JWT SECRET KEY
+ADMIN_USERNAME="dxhoang031"                     # ⚠️  SỬA ADMIN USERNAME
+ADMIN_PASSWORD="02052004*"                       # ⚠️  SỬA ADMIN PASSWORD
 
 # Đường dẫn cài đặt
 INSTALL_DIR="/var/www/bioweb"
 SERVICE_USER="bioweb"
+# Thư mục source hiện tại (nơi chứa script này)
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "====================================================================="
 echo "🚀 BioWeb Production Deployment Starting..."
@@ -44,27 +43,28 @@ echo ""
 # ===================================================================
 echo "📦 Installing system dependencies..."
 
-# Kiểm tra sudo password
-echo "🔐 Testing sudo password..."
-echo "$SUDO_PASSWORD" | sudo -S echo "Sudo password verified" || {
-    echo "❌ Sudo password incorrect. Please check SUDO_PASSWORD variable."
+# Kiểm tra quyền root
+echo "🔐 Checking root privileges..."
+if [ "$EUID" -ne 0 ]; then
+    echo "❌ This script must be run as root. Please run with: sudo ./deploy-production.sh"
     exit 1
-}
+fi
+echo "✅ Running as root"
 
 # Update system
-echo "$SUDO_PASSWORD" | sudo -S apt update && echo "$SUDO_PASSWORD" | sudo -S apt upgrade -y
+apt update && apt upgrade -y
 
 # Install essential packages
-echo "$SUDO_PASSWORD" | sudo -S apt install -y curl wget git nginx sqlite3 ufw certbot python3-certbot-nginx
+apt install -y curl wget git nginx sqlite3 ufw certbot python3-certbot-nginx
 
 # Install .NET 9.0
 if ! command -v dotnet &> /dev/null; then
     echo "Installing .NET 9.0..."
     wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-    echo "$SUDO_PASSWORD" | sudo -S dpkg -i packages-microsoft-prod.deb
+    dpkg -i packages-microsoft-prod.deb
     rm packages-microsoft-prod.deb
-    echo "$SUDO_PASSWORD" | sudo -S apt update
-    echo "$SUDO_PASSWORD" | sudo -S apt install -y dotnet-sdk-9.0
+    apt update
+    apt install -y dotnet-sdk-9.0
 fi
 
 # Install Entity Framework tools
@@ -94,22 +94,20 @@ mkdir -p $INSTALL_DIR/backups
 echo "✅ User and directories created"
 
 # ===================================================================
-# BƯỚC 3: CLONE/UPDATE SOURCE CODE
+# BƯỚC 3: COPY SOURCE CODE TỪ THỦ MỤC HIỆN TẠI
 # ===================================================================
-echo "📥 Getting source code..."
+echo "📥 Copying source code from current directory..."
 
-if [ -d "$INSTALL_DIR/source" ]; then
-    echo "Updating existing repository..."
-    cd $INSTALL_DIR/source
-    git pull origin main
-else
-    echo "Cloning repository..."
-    git clone $GIT_REPO $INSTALL_DIR/source
-fi
+# Tạo thư mục source nếu chưa có
+mkdir -p $INSTALL_DIR/source
+
+# Copy toàn bộ source code từ thư mục hiện tại
+echo "Copying files from $CURRENT_DIR to $INSTALL_DIR/source..."
+rsync -av --exclude='.git' --exclude='*.sh' --exclude='*.md' "$CURRENT_DIR/" "$INSTALL_DIR/source/"
 
 cd $INSTALL_DIR/source
 
-echo "✅ Source code ready"
+echo "✅ Source code copied successfully"
 
 # ===================================================================
 # BƯỚC 4: BUILD PROJECT
@@ -117,15 +115,25 @@ echo "✅ Source code ready"
 echo "🔨 Building project..."
 
 # Restore packages
-dotnet restore
+echo "Restoring packages..."
+dotnet restore || {
+    echo "Error: Failed to restore packages"
+    exit 1
+}
 
 # Build server
 echo "Building server..."
-dotnet publish BioWeb.server/BioWeb.server.csproj -c Release -o $INSTALL_DIR/server
+dotnet publish BioWeb.server/BioWeb.server.csproj -c Release -o $INSTALL_DIR/server || {
+    echo "Error: Failed to build server"
+    exit 1
+}
 
-# Build client  
+# Build client
 echo "Building client..."
-dotnet publish BioWeb.client/BioWeb.client.csproj -c Release -o $INSTALL_DIR/client
+dotnet publish BioWeb.client/BioWeb.client.csproj -c Release -o $INSTALL_DIR/client || {
+    echo "Error: Failed to build client"
+    exit 1
+}
 
 echo "✅ Project built successfully"
 
@@ -145,15 +153,21 @@ if [ -f "$INSTALL_DIR/data/BioWeb.db" ]; then
 fi
 
 # Chạy database migration
-echo "🔄 Running database migrations..."
+echo "Running database migrations..."
 cd $INSTALL_DIR/server
 export ConnectionStrings__DefaultConnection="Data Source=$INSTALL_DIR/data/BioWeb.db"
 
-# Tạo database và chạy migrations nếu cần
-dotnet BioWeb.server.dll --migrate-database &
-MIGRATE_PID=$!
-sleep 10
-kill $MIGRATE_PID 2>/dev/null || true
+# Kiểm tra xem có file dll không
+if [ ! -f "BioWeb.server.dll" ]; then
+    echo "Error: BioWeb.server.dll not found in $INSTALL_DIR/server"
+    exit 1
+fi
+
+# Tạo database và chạy migrations
+echo "Starting migration process..."
+timeout 30 dotnet BioWeb.server.dll --migrate-database || {
+    echo "Warning: Migration timeout or failed, continuing..."
+}
 
 # Cập nhật admin user trong database với password hash
 echo "👤 Updating admin user credentials..."
@@ -224,23 +238,30 @@ echo "✅ Database setup completed"
 # ===================================================================
 # BƯỚC 6: CẤU HÌNH SSL CERTIFICATES
 # ===================================================================
-echo "🔒 Setting up SSL certificates..."
+echo "Setting up SSL certificates..."
 
-# Tạo self-signed certificate cho development (sẽ thay bằng Let's Encrypt)
-if [ ! -f "$INSTALL_DIR/certificates/server.pfx" ]; then
+# Tạo self-signed certificate cho development
+if [ ! -f "$INSTALL_DIR/certificates/server.crt" ] || [ ! -f "$INSTALL_DIR/certificates/server.key" ]; then
     echo "Creating temporary self-signed certificate..."
-    openssl req -x509 -newkey rsa:4096 -keyout $INSTALL_DIR/certificates/server.key \
-        -out $INSTALL_DIR/certificates/server.crt -days 365 -nodes \
-        -subj "/C=VN/ST=HCM/L=HCM/O=BioWeb/CN=$DOMAIN"
 
-    # Convert to PFX format
-    openssl pkcs12 -export -out $INSTALL_DIR/certificates/server.pfx \
-        -inkey $INSTALL_DIR/certificates/server.key \
-        -in $INSTALL_DIR/certificates/server.crt \
-        -password pass:BioWeb2024
+    # Tạo certificate và key
+    openssl req -x509 -newkey rsa:2048 -keyout $INSTALL_DIR/certificates/server.key \
+        -out $INSTALL_DIR/certificates/server.crt -days 365 -nodes \
+        -subj "/C=VN/ST=HCM/L=HCM/O=BioWeb/CN=$DOMAIN" || {
+        echo "Error: Failed to create SSL certificate"
+        exit 1
+    }
+
+    # Set proper permissions
+    chmod 600 $INSTALL_DIR/certificates/server.key
+    chmod 644 $INSTALL_DIR/certificates/server.crt
+
+    echo "SSL certificates created successfully"
+else
+    echo "SSL certificates already exist"
 fi
 
-echo "✅ SSL certificates ready"
+echo "SSL certificates ready"
 
 # ===================================================================
 # BƯỚC 7: CẤU HÌNH NGINX REVERSE PROXY
