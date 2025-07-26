@@ -5,7 +5,7 @@ WORKDIR /src
 # Copy csproj files and restore dependencies
 COPY BioWeb.server/*.csproj ./BioWeb.server/
 COPY BioWeb.client/*.csproj ./BioWeb.client/
-COPY BioWeb.shared/*.csproj ./BioWeb.shared/
+COPY BioWeb.Shared/*.csproj ./BioWeb.Shared/
 RUN dotnet restore BioWeb.server/BioWeb.server.csproj
 
 # Copy source code
