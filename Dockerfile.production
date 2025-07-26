@@ -2,21 +2,26 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+# Copy solution file
+COPY *.sln ./
+
 # Copy csproj files and restore dependencies
 COPY BioWeb.server/*.csproj ./BioWeb.server/
 COPY BioWeb.client/*.csproj ./BioWeb.client/
 COPY BioWeb.Shared/*.csproj ./BioWeb.Shared/
-RUN dotnet restore BioWeb.server/BioWeb.server.csproj
+
+# Restore dependencies
+RUN dotnet restore
 
 # Copy source code
 COPY . .
 
-# Build and publish server
+# Build and publish server (includes Blazor client)
 RUN dotnet publish BioWeb.server/BioWeb.server.csproj \
     -c Release \
     -o /app/publish \
     --no-restore \
-    --verbosity minimal
+    --verbosity normal
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime

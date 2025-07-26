@@ -26,6 +26,9 @@ builder.Services.AddSwaggerGen();
 // 2.5. Thêm Scalar UI
 builder.Services.AddOpenApi();
 
+// 2.6. Thêm Blazor WebAssembly hosting
+builder.Services.AddRazorPages();
+
 // 2.6. Cấu hình CORS để cho phép client kết nối
 builder.Services.AddCors(options =>
 {
@@ -138,6 +141,10 @@ app.UseStaticFiles(new StaticFileOptions
 
 // Tìm đến Controller phù hợp để xử lý request
 app.MapControllers();
+
+// Map Blazor WebAssembly
+app.MapRazorPages();
+app.MapFallbackToFile("index.html");
 
 
 // --- PHẦN 6: CHẠY ỨNG DỤNG ---
