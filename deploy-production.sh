@@ -54,8 +54,12 @@ echo "✅ Running as root"
 # Update system
 apt update && apt upgrade -y
 
-# Install essential packages
-apt install -y curl wget git nginx sqlite3 ufw certbot python3-certbot-nginx
+# Install essential packages và dependencies đầy đủ
+apt install -y curl wget git nginx sqlite3 ufw certbot python3-certbot-nginx \
+    software-properties-common apt-transport-https ca-certificates \
+    gnupg lsb-release build-essential unzip zip htop nano vim \
+    openssl rsync net-tools iptables-persistent fail2ban \
+    python3 python3-pip nodejs npm
 
 # Install .NET 9.0
 if ! command -v dotnet &> /dev/null; then
@@ -72,7 +76,41 @@ echo "Installing EF Core tools..."
 dotnet tool install --global dotnet-ef || dotnet tool update --global dotnet-ef
 export PATH="$PATH:/root/.dotnet/tools"
 
-echo "✅ Dependencies installed successfully"
+# Cài đặt thêm các công cụ hữu ích
+echo "📦 Installing additional useful tools..."
+
+# Cài đặt Docker (nếu cần)
+if ! command -v docker &> /dev/null; then
+    echo "Installing Docker..."
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+    usermod -aG docker root
+    rm get-docker.sh
+fi
+
+# Cài đặt PM2 cho Node.js process management
+npm install -g pm2
+
+# Cài đặt các Python packages hữu ích
+pip3 install --upgrade pip
+pip3 install requests beautifulsoup4 lxml
+
+# Cấu hình timezone
+timedatectl set-timezone Asia/Ho_Chi_Minh
+
+# Tăng file limits
+echo "* soft nofile 65536" >> /etc/security/limits.conf
+echo "* hard nofile 65536" >> /etc/security/limits.conf
+echo "root soft nofile 65536" >> /etc/security/limits.conf
+echo "root hard nofile 65536" >> /etc/security/limits.conf
+
+# Cấu hình kernel parameters
+echo "net.core.somaxconn = 65536" >> /etc/sysctl.conf
+echo "net.ipv4.tcp_max_syn_backlog = 65536" >> /etc/sysctl.conf
+echo "net.core.netdev_max_backlog = 5000" >> /etc/sysctl.conf
+sysctl -p
+
+echo "✅ All dependencies and tools installed successfully"
 
 # ===================================================================
 # BƯỚC 2: TẠO USER VÀ THƯ MỤC
@@ -292,10 +330,20 @@ server {
     ssl_certificate $INSTALL_DIR/certificates/server.crt;
     ssl_certificate_key $INSTALL_DIR/certificates/server.key;
 
+    # SSL Security Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
     # Security headers
     add_header X-Frame-Options DENY;
     add_header X-Content-Type-Options nosniff;
     add_header X-XSS-Protection "1; mode=block";
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin";
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self';";
 
     # Client static files
     location / {
@@ -309,8 +357,25 @@ server {
         }
     }
 
-    # API proxy to backend
+    # API proxy to backend với CORS support
     location /api/ {
+        # CORS headers
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+
+        # Handle preflight requests
+        if (\$request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
@@ -320,6 +385,9 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
     }
 
     # File uploads
@@ -360,9 +428,10 @@ RestartSec=10
 KillSignal=SIGINT
 SyslogIdentifier=bioweb-server
 Environment=ASPNETCORE_ENVIRONMENT=Production
-Environment=ASPNETCORE_URLS=http://localhost:5000
+Environment=ASPNETCORE_URLS=http://0.0.0.0:5000
 Environment=ProductionDomain=$DOMAIN
 Environment=ConnectionStrings__DefaultConnection="Data Source=$INSTALL_DIR/data/BioWeb.db"
+Environment=ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
 
 [Install]
 WantedBy=multi-user.target
@@ -375,18 +444,67 @@ systemctl enable bioweb-server
 echo "✅ Systemd services created"
 
 # ===================================================================
-# BƯỚC 9: CẤU HÌNH FIREWALL
+# BƯỚC 9: CẤU HÌNH FIREWALL VÀ MỞ TẤT CẢ PORT CẦN THIẾT
 # ===================================================================
-echo "🔥 Configuring firewall..."
+echo "🔥 Configuring firewall and opening all necessary ports..."
 
-# Enable UFW và cấu hình rules
-ufw --force enable
+# Reset UFW về mặc định
+ufw --force reset
+
+# Cấu hình UFW rules chi tiết
 ufw default deny incoming
 ufw default allow outgoing
-ufw allow ssh
-ufw allow 'Nginx Full'
 
-echo "✅ Firewall configured"
+# Mở các port cơ bản
+ufw allow ssh                    # Port 22 - SSH
+ufw allow 80/tcp                 # Port 80 - HTTP
+ufw allow 443/tcp                # Port 443 - HTTPS
+ufw allow 'Nginx Full'           # Nginx HTTP + HTTPS
+
+# Mở thêm các port phổ biến cho development
+ufw allow 3000/tcp               # React dev server
+ufw allow 5000/tcp               # ASP.NET Core default
+ufw allow 5001/tcp               # ASP.NET Core HTTPS
+ufw allow 8080/tcp               # Alternative HTTP
+ufw allow 8443/tcp               # Alternative HTTPS
+
+# Mở port cho database (nếu cần remote access)
+ufw allow 1433/tcp               # SQL Server
+ufw allow 3306/tcp               # MySQL
+ufw allow 5432/tcp               # PostgreSQL
+
+# Mở port cho monitoring tools
+ufw allow 9090/tcp               # Prometheus
+ufw allow 3001/tcp               # Grafana
+
+# Enable UFW
+ufw --force enable
+
+# Hiển thị status
+ufw status verbose
+
+echo "✅ Firewall configured with all necessary ports opened"
+
+# Cấu hình thêm iptables để đảm bảo traffic flow
+echo "🌐 Configuring additional network settings..."
+
+# Đảm bảo iptables cho phép traffic
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 5000 -j ACCEPT
+
+# Save iptables rules
+iptables-save > /etc/iptables/rules.v4
+
+# Cấu hình sysctl cho network performance
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+echo "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
+echo "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
+sysctl -p
+
+echo "✅ Network configuration completed"
 
 # ===================================================================
 # BƯỚC 10: SET PERMISSIONS
