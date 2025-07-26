@@ -94,15 +94,15 @@ jobs:
 
           # Test HTTP redirect
           echo "Testing HTTP redirect..."
-          curl -I http://dxhoang.site/ | grep -q "301\|302" || echo "⚠️ HTTP redirect not working"
+          curl -I http://103.157.204.17/ | grep -q "301\|302" || echo "⚠️ HTTP redirect not working"
 
           # Test HTTPS
           echo "Testing HTTPS..."
-          curl -k -f https://dxhoang.site/ || exit 1
+          curl -k -f https://103.157.204.17/ || exit 1
 
           # Test API
           echo "Testing API..."
-          curl -k -f https://dxhoang.site/api/health || echo "⚠️ API health check failed"
+          curl -k -f https://103.157.204.17/api/health || echo "⚠️ API health check failed"
 
           echo "✅ Deployment successful!"
-          echo "🌐 Access your app at: https://dxhoang.site"
+          echo "🌐 Access your app at: https://103.157.204.17"
