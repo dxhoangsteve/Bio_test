@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   bioweb:
     image: bioweb:latest
@@ -14,12 +12,13 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/BioWeb.db
       - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ASPNETCORE_URLS=http://+:80
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 120s
     logging:
       driver: "json-file"
       options:
