@@ -58,6 +58,51 @@ jobs:
             cd ..
           fi
 
+          # Copy docker-compose file from source
+          cp source/docker-compose.production.yml .
+          cp source/nginx.conf . || echo "nginx.conf not found, will create"
+
+          # Create nginx.conf if not exists
+          if [ ! -f "nginx.conf" ]; then
+            cat > nginx.conf << 'EOF'
+          events {
+              worker_connections 1024;
+          }
+
+          http {
+              include /etc/nginx/mime.types;
+              default_type application/octet-stream;
+
+              upstream bioweb {
+                  server bioweb:5000;
+              }
+
+              server {
+                  listen 80;
+                  server_name _;
+                  return 301 https://$host$request_uri;
+              }
+
+              server {
+                  listen 443 ssl http2;
+                  server_name _;
+
+                  ssl_certificate /etc/nginx/ssl/server.crt;
+                  ssl_certificate_key /etc/nginx/ssl/server.key;
+                  ssl_protocols TLSv1.2 TLSv1.3;
+
+                  location / {
+                      proxy_pass http://bioweb;
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $scheme;
+                  }
+              }
+          }
+          EOF
+          fi
+
           # Stop current containers
           docker-compose -f docker-compose.production.yml down || true
 
@@ -65,9 +110,6 @@ jobs:
           cd source
           docker build -f Dockerfile.production -t bioweb:latest .
           cd ..
-
-          # Update docker-compose to use local image
-          sed -i 's|image:.*|image: bioweb:latest|g' docker-compose.production.yml
 
           # Start with new image
           docker-compose -f docker-compose.production.yml up -d
