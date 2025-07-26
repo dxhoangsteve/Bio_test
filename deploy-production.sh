@@ -18,11 +18,11 @@ auto_sudo() {
 # QUAN TRỌNG: CẤU HÌNH CẦN SỬA TRƯỚC KHI CHẠY
 # ===================================================================
 # TODO: Sửa các biến sau theo server của bạn:
-DOMAIN="dxhoang.site"                    # ⚠️  SỬA DOMAIN CỦA BẠN
-EMAIL="sterbe2k4@gmail.com"               # ⚠️  SỬA EMAIL CỦA BẠN
-JWT_SECRET="hLyhJGGdiaf83JyhdH" # ⚠️  SỬA JWT SECRET KEY
-ADMIN_USERNAME="dxhoang031"                     # ⚠️  SỬA ADMIN USERNAME
-ADMIN_PASSWORD="02052004*"                       # ⚠️  SỬA ADMIN PASSWORD
+DOMAIN="*.com"                    # ⚠️  SỬA DOMAIN CỦA BẠN
+EMAIL=""               # ⚠️  SỬA EMAIL CỦA BẠN
+JWT_SECRET="" # ⚠️  SỬA JWT SECRET KEY
+ADMIN_USERNAME=""                     # ⚠️  SỬA ADMIN USERNAME
+ADMIN_PASSWORD=""                       # ⚠️  SỬA ADMIN PASSWORD
 
 # Đường dẫn cài đặt
 INSTALL_DIR="/var/www/bioweb"
