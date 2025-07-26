@@ -120,6 +120,9 @@ echo "👤 Setting up user and directories..."
 # Tạo user cho service (nếu chưa có)
 if ! id "$SERVICE_USER" &>/dev/null; then
     useradd -r -s /bin/false -d $INSTALL_DIR $SERVICE_USER
+    echo "✅ User $SERVICE_USER created"
+else
+    echo "ℹ️  User $SERVICE_USER already exists, skipping..."
 fi
 
 # Tạo thư mục và set permissions
@@ -183,17 +186,39 @@ echo "🗄️  Setting up database..."
 # Tạo database directory nếu chưa có
 mkdir -p $INSTALL_DIR/data
 
-# Backup database cũ nếu có
+# Xóa database cũ nếu có (để tránh conflict)
 if [ -f "$INSTALL_DIR/data/BioWeb.db" ]; then
-    echo "⚠️  CẢNH BÁO: Tìm thấy database cũ. Backup trước khi cập nhật..."
-    cp $INSTALL_DIR/data/BioWeb.db $INSTALL_DIR/backups/BioWeb.db.backup.$(date +%Y%m%d_%H%M%S)
-    echo "✅ Database backed up"
+    echo "🗑️  Removing old database to avoid conflicts..."
+    rm -f $INSTALL_DIR/data/BioWeb.db
+    echo "✅ Old database removed"
 fi
+
+# Tạo file appsettings.Production.json để tắt HTTPS
+echo "⚙️  Creating production configuration..."
+cat > $INSTALL_DIR/server/appsettings.Production.json << 'EOF'
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Kestrel": {
+    "Endpoints": {
+      "Http": {
+        "Url": "http://0.0.0.0:5000"
+      }
+    }
+  }
+}
+EOF
 
 # Chạy database migration
 echo "Running database migrations..."
 cd $INSTALL_DIR/server
 export ConnectionStrings__DefaultConnection="Data Source=$INSTALL_DIR/data/BioWeb.db"
+export ASPNETCORE_ENVIRONMENT=Production
 
 # Kiểm tra xem có file dll không
 if [ ! -f "BioWeb.server.dll" ]; then
@@ -274,13 +299,19 @@ echo "✅ Admin credentials updated: $ADMIN_USERNAME / $ADMIN_PASSWORD"
 echo "✅ Database setup completed"
 
 # ===================================================================
-# BƯỚC 6: CẤU HÌNH SSL CERTIFICATES
+# BƯỚC 6: CẤU HÌNH SSL CERTIFICATES (CHỈ CHO NGINX)
 # ===================================================================
-echo "Setting up SSL certificates..."
+echo "🔒 Setting up SSL certificates for Nginx..."
 
-# Tạo self-signed certificate cho development
+# Xóa certificates cũ nếu có để tránh conflict
+if [ -f "$INSTALL_DIR/certificates/server.pfx" ]; then
+    echo "🗑️  Removing old .pfx certificate..."
+    rm -f $INSTALL_DIR/certificates/server.pfx
+fi
+
+# Tạo self-signed certificate cho Nginx
 if [ ! -f "$INSTALL_DIR/certificates/server.crt" ] || [ ! -f "$INSTALL_DIR/certificates/server.key" ]; then
-    echo "Creating temporary self-signed certificate..."
+    echo "Creating temporary self-signed certificate for Nginx..."
 
     # Tạo certificate và key
     openssl req -x509 -newkey rsa:2048 -keyout $INSTALL_DIR/certificates/server.key \
@@ -294,12 +325,12 @@ if [ ! -f "$INSTALL_DIR/certificates/server.crt" ] || [ ! -f "$INSTALL_DIR/certi
     chmod 600 $INSTALL_DIR/certificates/server.key
     chmod 644 $INSTALL_DIR/certificates/server.crt
 
-    echo "SSL certificates created successfully"
+    echo "✅ SSL certificates created successfully"
 else
-    echo "SSL certificates already exist"
+    echo "ℹ️  SSL certificates already exist"
 fi
 
-echo "SSL certificates ready"
+echo "✅ SSL certificates ready for Nginx"
 
 # ===================================================================
 # BƯỚC 7: CẤU HÌNH NGINX REVERSE PROXY
