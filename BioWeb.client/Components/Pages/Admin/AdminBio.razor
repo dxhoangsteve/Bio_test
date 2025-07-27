@@ -23,8 +23,11 @@
                 <i class="fas fa-user-cog me-2"></i>Quản trị hồ sơ
             </a>
             <div class="navbar-nav ms-auto">
-                <button class="btn btn-outline-danger btn-sm" @onclick="Logout">
-                    <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                <a class="nav-link me-2" href="/" target="_blank">
+                    <i class="fas fa-home me-2"></i>
+                </a>
+                <button class="btn btn-outline btn-sm" @onclick="Logout">
+                    <i class="fas fa-sign-out-alt me-2"></i>
                 </button>
             </div>
         </div>
@@ -118,7 +121,7 @@
                         <div class="card shadow-sm mb-4">
                             <div class="card-body">
                                 <h5 class="card-title mb-3">
-                                    <i class="fas fa-share-alt me-2"></i>Mạng xã hội
+                                    <i class="fas fa-share-alt me-2"></i>Kết nối
                                 </h5>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -159,91 +162,115 @@
                                 </h5>
                                 @if (projects != null && projects.Any())
                                 {
-                                    @foreach (var project in projects.Select((p, index) => new { Project = p, Index = index }))
-                                    {
-                                        <div class="card border-0 shadow-sm mb-4">
-                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0 fw-bold text-primary">
-                                                    <i class="fas fa-project-diagram me-2"></i>Dự án @(project.Index + 1)
-                                                </h6>
-                                                <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveProject(project.Index)">
-                                                    <i class="fas fa-trash me-1"></i>Xóa
-                                                </button>
-                                            </div>
-                                            <div class="card-body">
-                                                <!-- Basic Information -->
-                                                <div class="row mb-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-medium">
-                                                            <i class="fas fa-tag me-1 text-primary"></i>Tên dự án
-                                                        </label>
-                                                        <input type="text" class="form-control" @bind="project.Project.ProjectName" placeholder="Tên dự án" />
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-medium">
-                                                            <i class="fas fa-code me-1 text-primary"></i>Công nghệ
-                                                        </label>
-                                                        <input type="text" class="form-control" @bind="project.Project.Technologies" placeholder="React, .NET, SQL Server..." />
-                                                        <div class="form-text">Phân cách bằng dấu phẩy</div>
-                                                    </div>
-                                                </div>
+                                    <!-- Project Carousel -->
+                                    <div class="project-carousel-container position-relative">
+                                        <!-- Navigation Buttons -->
+                                        <button type="button" class="btn btn-outline-primary carousel-nav-btn carousel-nav-left"
+                                                @onclick="PreviousProjects" disabled="@(currentProjectIndex == 0)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary carousel-nav-btn carousel-nav-right"
+                                                @onclick="NextProjects" disabled="@(currentProjectIndex + GetProjectsPerPage() >= projects.Count)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
 
-                                                <!-- Description -->
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-medium">
-                                                        <i class="fas fa-align-left me-1 text-primary"></i>Mô tả
-                                                    </label>
-                                                    <textarea class="form-control" rows="3" @bind="project.Project.Description"
-                                                              placeholder="Mô tả chi tiết về dự án..."></textarea>
-                                                </div>
-
-                                                <!-- Links -->
-                                                <div class="row mb-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-medium">
-                                                            <i class="fas fa-external-link-alt me-1 text-primary"></i>Link product
-                                                        </label>
-                                                        <input type="url" class="form-control" @bind="project.Project.ProjectURL" placeholder="https://demo.example.com" />
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-medium">
-                                                            <i class="fab fa-github me-1 text-primary"></i>Link GitHub
-                                                        </label>
-                                                        <input type="url" class="form-control" @bind="project.Project.GitHubURL" placeholder="https://github.com/username/repo" />
-                                                    </div>
-                                                </div>
-                                                <!-- Thumbnail Upload Section -->
-                                                <div class="row">
-                                                    <div class="col-md-8 mb-3">
-                                                        <div class="card border-0 bg-light">
-                                                            <div class="card-body p-3">
-                                                                <h6 class="card-title mb-3">
-                                                                    <i class="fas fa-image me-2 text-primary"></i>Hình ảnh dự án
-                                                                </h6>
-                                                                <FileUploadComponent UploadEndpoint="/api/upload/project-thumbnail" AcceptedTypes="image/*" MaxSizeInMB="5"
-                                                                    CurrentImageUrl="@project.Project.ThumbnailURL" Label="Ảnh thumbnail"
-                                                                    OnUploadSuccess="@((url) => HandleProjectThumbnailUploadSuccess(url, project.Index))"
-                                                                    OnRemoveImage="@(() => HandleRemoveProjectThumbnail(project.Index))" />
-                                                            </div>
+                                        <!-- Projects Display -->
+                                        <div class="row">
+                                            @for (int i = currentProjectIndex; i < GetMaxProjectIndex(); i++)
+                                            {
+                                                var project = projects[i];
+                                                var index = i;
+                                                <div class="@(isMobile ? "col-12" : "col-md-6") mb-4">
+                                                    <div class="card border-0 shadow-sm h-100">
+                                                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                            <h6 class="mb-0 fw-bold text-primary">
+                                                                <i class="fas fa-project-diagram me-2"></i>Dự án @(index + 1)
+                                                            </h6>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveProject(index)">
+                                                                <i class="fas fa-trash me-1"></i>Xóa
+                                                            </button>
                                                         </div>
-                                                    </div>
-                                                    <div class="col-md-4 mb-3">
-                                                        <label class="form-label fw-medium">Thứ tự hiển thị</label>
-                                                        <input type="number" class="form-control" @bind="project.Project.DisplayOrder" min="1" />
-
-                                                        <div class="mt-3">
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="checkbox" @bind="project.Project.IsPublished" id="published_@project.Index">
-                                                                <label class="form-check-label" for="published_@project.Index">
-                                                                    <i class="fas fa-eye me-1"></i>Hiển thị công khai
+                                                        <div class="card-body">
+                                                            <!-- Basic Information -->
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-medium">
+                                                                    <i class="fas fa-tag me-1 text-primary"></i>Tên dự án
                                                                 </label>
+                                                                <input type="text" class="form-control" @bind="project.ProjectName" placeholder="Tên dự án" />
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-medium">
+                                                                    <i class="fas fa-code me-1 text-primary"></i>Công nghệ
+                                                                </label>
+                                                                <input type="text" class="form-control" @bind="project.Technologies" placeholder="React, .NET, SQL Server..." />
+                                                                <div class="form-text">Phân cách bằng dấu phẩy</div>
+                                                            </div>
+
+                                                            <!-- Description -->
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-medium">
+                                                                    <i class="fas fa-align-left me-1 text-primary"></i>Mô tả
+                                                                </label>
+                                                                <textarea class="form-control" rows="2" @bind="project.Description" placeholder="Mô tả chi tiết về dự án..."></textarea>
+                                                            </div>
+
+                                                            <!-- Links -->
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-medium">
+                                                                    <i class="fas fa-external-link-alt me-1 text-primary"></i>Link product
+                                                                </label>
+                                                                <input type="url" class="form-control" @bind="project.ProjectURL" placeholder="https://demo.example.com" />
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-medium">
+                                                                    <i class="fab fa-github me-1 text-primary"></i>Link GitHub
+                                                                </label>
+                                                                <input type="url" class="form-control" @bind="project.GitHubURL" placeholder="https://github.com/username/repo" />
+                                                            </div>
+
+                                                            <!-- Image Upload -->
+                                                            <div class="mb-3">
+                                                                <div class="card border-0 bg-light">
+                                                                    <div class="card-body p-2">
+                                                                        <h6 class="card-title mb-2 small">
+                                                                            <i class="fas fa-image me-1 text-primary"></i>Hình ảnh dự án
+                                                                        </h6>
+                                                                        <FileUploadComponent UploadEndpoint="/api/upload/project-thumbnail" AcceptedTypes="image/*" MaxSizeInMB="5"
+                                                                            CurrentImageUrl="@project.ThumbnailURL" Label="Ảnh thumbnail"
+                                                                            OnUploadSuccess="@((string url) => HandleProjectThumbnailUploadSuccess(url, index))"
+                                                                            OnRemoveImage="@(() => HandleRemoveProjectThumbnail(index))" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Settings -->
+                                                            <div class="row">
+                                                                <div class="col-6">
+                                                                    <label class="form-label fw-medium small">Thứ tự hiển thị</label>
+                                                                    <input type="number" class="form-control form-control-sm" @bind="project.DisplayOrder" min="1" />
+                                                                </div>
+                                                                <div class="col-6 d-flex align-items-end">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox" @bind="project.IsPublished" id="published_@index">
+                                                                        <label class="form-check-label small" for="published_@index">
+                                                                            <i class="fas fa-eye me-1"></i>Hiển thị công khai
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            }
                                         </div>
-                                    }
+
+                                        <!-- Pagination Indicator -->
+                                        <div class="text-center mt-3">
+                                            <small class="text-muted">
+                                                Hiển thị @(currentProjectIndex + 1) - @(GetMaxProjectIndex()) trong tổng số @projects.Count dự án
+                                            </small>
+                                        </div>
+                                    </div>
                                 }
                                 else
                                 {
@@ -302,8 +329,58 @@
 
 </AdminGuard>
 
+<!-- Floating Home Button -->
+<a href="/" class="floating-home-btn" title="Về trang chủ">
+    <i class="fas fa-home"></i>
+</a>
+
+<style>
+    .floating-home-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        font-size: 18px;
+    }
+
+    .floating-home-btn:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        text-decoration: none;
+    }
+
+    .floating-home-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .floating-home-btn {
+            top: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            font-size: 16px;
+        }
+    }
+</style>
+
 <!-- Notification Component -->
-<NotificationComponent @ref="notificationComponent" />
+@* <NotificationComponent @ref="notificationComponent" /> *@
 
 @code {
     // Form data properties
@@ -328,20 +405,40 @@
     private bool isLoading = true;
     private bool isServerDown = false;
     private string serverErrorMessage = "";
-    private NotificationComponent? notificationComponent;
+    // private NotificationComponent? notificationComponent;
     private int viewCount = 0;
     private DateTime lastUpdated = DateTime.Now;
+
+    // Project carousel state
+    private int currentProjectIndex = 0;
+    private bool isMobile = false;
 
     protected override async Task OnInitializedAsync()
     {
         // Subscribe to server status changes
         ApiService.ServerStatusChanged += OnServerStatusChanged;
 
+        // Check if mobile
+        await CheckIfMobile();
+
         // Check server health first
         var isServerHealthy = await ApiService.CheckServerHealthAsync();
         if (isServerHealthy)
         {
             await LoadBioData();
+        }
+    }
+
+    private async Task CheckIfMobile()
+    {
+        try
+        {
+            var result = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
+            isMobile = result;
+        }
+        catch
+        {
+            isMobile = false;
         }
     }
 
@@ -459,13 +556,13 @@
 
             if (response.Success)
             {
-                await notificationComponent?.ShowAsync("Thành công", "Đã xóa ảnh đại diện", NotificationComponent.NotificationType.Success)!;
+                await JSRuntime.InvokeVoidAsync("alert", "Đã xóa ảnh đại diện thành công!");
             }
             else
             {
                 // Revert if failed
                 avatarUrl = aboutMe.AvatarURL ?? "";
-                await notificationComponent?.ShowAsync("Lỗi", $"Xóa ảnh đại diện thất bại: {response.Message}", NotificationComponent.NotificationType.Error)!;
+                await JSRuntime.InvokeVoidAsync("alert", $"Xóa ảnh đại diện thất bại: {response.Message}");
                 StateHasChanged();
             }
         }
@@ -507,6 +604,14 @@
         if (index >= 0 && index < projects.Count)
         {
             projects.RemoveAt(index);
+
+            // Adjust currentProjectIndex if needed
+            if (currentProjectIndex >= projects.Count && currentProjectIndex > 0)
+            {
+                var projectsPerPage = GetProjectsPerPage();
+                currentProjectIndex = Math.Max(0, projects.Count - projectsPerPage);
+            }
+
             StateHasChanged();
         }
     }
@@ -548,7 +653,7 @@
                 var aboutMeResponse = await ApiService.UpdateAboutMeAsync(aboutMe);
                 if (!aboutMeResponse.Success)
                 {
-                    await notificationComponent?.ShowAsync("Lỗi", $"Cập nhật thông tin cá nhân thất bại: {aboutMeResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                    await JSRuntime.InvokeVoidAsync("alert", $"Cập nhật thông tin cá nhân thất bại: {aboutMeResponse.Message}");
                     return;
                 }
             }
@@ -566,7 +671,7 @@
                 var contactResponse = await ApiService.UpdateContactAsync(contact);
                 if (!contactResponse.Success)
                 {
-                    await notificationComponent?.ShowAsync("Lỗi", $"Cập nhật thông tin liên hệ thất bại: {contactResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                    await JSRuntime.InvokeVoidAsync("alert", $"Cập nhật thông tin liên hệ thất bại: {contactResponse.Message}");
                     return;
                 }
             }
@@ -579,7 +684,7 @@
                     var updateResponse = await ApiService.UpdateProjectAsync(project.ProjectID, project);
                     if (!updateResponse.Success)
                     {
-                        await notificationComponent?.ShowAsync("Lỗi", $"Cập nhật dự án {project.ProjectName} thất bại: {updateResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                        await JSRuntime.InvokeVoidAsync("alert", $"Cập nhật dự án {project.ProjectName} thất bại: {updateResponse.Message}");
                         return;
                     }
                 }
@@ -588,14 +693,14 @@
                     var createResponse = await ApiService.CreateProjectAsync(project);
                     if (!createResponse.Success)
                     {
-                        await notificationComponent?.ShowAsync("Lỗi", $"Tạo dự án {project.ProjectName} thất bại: {createResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                        await JSRuntime.InvokeVoidAsync("alert", $"Tạo dự án {project.ProjectName} thất bại: {createResponse.Message}");
                         return;
                     }
                 }
             }
 
             // Show success message
-            await notificationComponent?.ShowAsync("Thành công", "Đã lưu tất cả thay đổi thành công!", NotificationComponent.NotificationType.Success)!;
+            await JSRuntime.InvokeVoidAsync("alert", "Đã lưu tất cả thay đổi thành công!");
 
             // Reload data to reflect changes
             await LoadBioData();
@@ -603,7 +708,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error saving data: {ex.Message}");
-            await notificationComponent?.ShowAsync("Lỗi", "Có lỗi xảy ra khi lưu dữ liệu!", NotificationComponent.NotificationType.Error)!;
+            await JSRuntime.InvokeVoidAsync("alert", "Có lỗi xảy ra khi lưu dữ liệu!");
         }
     }
 
@@ -619,8 +724,41 @@
         return utcTime.AddHours(7);
     }
 
+    private int GetProjectsPerPage()
+    {
+        return isMobile ? 1 : 2;
+    }
+
+    private int GetMaxProjectIndex()
+    {
+        return Math.Min(currentProjectIndex + GetProjectsPerPage(), projects.Count);
+    }
+
+    // Project carousel navigation methods
+    private void NextProjects()
+    {
+        var projectsPerPage = GetProjectsPerPage();
+        if (currentProjectIndex + projectsPerPage < projects.Count)
+        {
+            currentProjectIndex += projectsPerPage;
+            StateHasChanged();
+        }
+    }
+
+    private void PreviousProjects()
+    {
+        if (currentProjectIndex > 0)
+        {
+            var projectsPerPage = GetProjectsPerPage();
+            currentProjectIndex = Math.Max(0, currentProjectIndex - projectsPerPage);
+            StateHasChanged();
+        }
+    }
+
     public void Dispose()
     {
         ApiService.ServerStatusChanged -= OnServerStatusChanged;
     }
 }
+
+

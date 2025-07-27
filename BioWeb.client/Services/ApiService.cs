@@ -70,8 +70,12 @@ namespace BioWeb.client.Services
 
         // Site Configuration methods
         Task<ApiResponse<SiteConfigurationDto>> GetSiteConfigurationAsync();
+        Task<ApiResponse<SiteConfigurationDto>> GetPublicSiteInfoAsync();
         Task<SimpleResponse> UpdateSiteConfigurationAsync(SiteConfigurationDto siteConfig);
         Task<SimpleResponse> IncrementViewCountAsync();
+
+        // Utility methods
+        string GetBaseUrl();
     }
 
     public class ApiService : IApiService
@@ -446,31 +450,40 @@ namespace BioWeb.client.Services
         /// </summary>
         public async Task SetAuthTokenAsync(string token)
         {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            // Lưu token vào localStorage
+            // Chỉ lưu token vào localStorage, không set vào default headers
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "adminToken", token);
         }
 
         /// <summary>
-        /// Load token từ localStorage và set header
+        /// Tạo HttpRequestMessage với auth header cho admin endpoints
         /// </summary>
-        public async Task LoadAuthTokenAsync()
+        private async Task<HttpRequestMessage> CreateAuthenticatedRequestAsync(HttpMethod method, string requestUri)
         {
+            var request = new HttpRequestMessage(method, requestUri);
+
             try
             {
                 var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "adminToken");
                 if (!string.IsNullOrEmpty(token))
                 {
-                    _httpClient.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 }
             }
             catch
             {
                 // Ignore errors
             }
+
+            return request;
+        }
+
+        /// <summary>
+        /// Load token từ localStorage (không set vào default headers)
+        /// </summary>
+        public async Task LoadAuthTokenAsync()
+        {
+            // Method này giữ lại để tương thích, nhưng không làm gì
+            // Token sẽ được load khi cần thiết trong CreateAuthenticatedRequestAsync
         }
 
         /// <summary>
@@ -478,7 +491,6 @@ namespace BioWeb.client.Services
         /// </summary>
         public async Task ClearAuthTokenAsync()
         {
-            _httpClient.DefaultRequestHeaders.Authorization = null;
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "adminToken");
         }
 
@@ -489,16 +501,10 @@ namespace BioWeb.client.Services
         {
             try
             {
-                // Tạm thời set token để test
-                var originalAuth = _httpClient.DefaultRequestHeaders.Authorization;
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var request = new HttpRequestMessage(HttpMethod.Get, "/api/Auth/validate-token");
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _httpClient.GetAsync("/api/Auth/validate-token");
-
-                // Restore original auth header
-                _httpClient.DefaultRequestHeaders.Authorization = originalAuth;
-
+                var response = await _httpClient.SendAsync(request);
                 return response.IsSuccessStatusCode;
             }
             catch
@@ -561,7 +567,9 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.PostAsync(endpoint, content);
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Post, endpoint);
+                request.Content = content;
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -637,7 +645,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"/api/Upload/file/{category}/{fileName}");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Delete, $"/api/Upload/file/{category}/{fileName}");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -689,7 +698,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync("/api/SiteConfiguration/about-me", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Put, "/api/SiteConfiguration/about-me");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -738,7 +749,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync("/api/SiteConfiguration/contact", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Put, "/api/SiteConfiguration/contact");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -778,7 +791,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync("/api/Project/admin");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Get, "/api/Project/admin");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -813,7 +827,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/Project/admin/{id}");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Get, $"/api/Project/admin/{id}");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -863,7 +878,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync("/api/Project", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Post, "/api/Project");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -914,7 +931,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync($"/api/Project/{id}", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Put, $"/api/Project/{id}");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -950,7 +969,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"/api/Project/{id}");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Delete, $"/api/Project/{id}");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1069,7 +1089,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync("/api/Category", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Post, "/api/Category");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1114,7 +1136,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync($"/api/Category/{id}", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Put, $"/api/Category/{id}");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1150,7 +1174,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"/api/Category/{id}");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Delete, $"/api/Category/{id}");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1190,7 +1215,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync("/api/Article/admin");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Get, "/api/Article/admin");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1225,7 +1251,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/Article/admin/{id}");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Get, $"/api/Article/admin/{id}");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1272,7 +1299,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync("/api/Article", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Post, "/api/Article");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1320,7 +1349,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync($"/api/Article/{id}", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Put, $"/api/Article/{id}");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1356,7 +1387,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"/api/Article/{id}");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Delete, $"/api/Article/{id}");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1396,7 +1428,8 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync("/api/SiteConfiguration");
+                var request = await CreateAuthenticatedRequestAsync(HttpMethod.Get, "/api/SiteConfiguration");
+                var response = await _httpClient.SendAsync(request);
                 var json = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1449,6 +1482,47 @@ namespace BioWeb.client.Services
         }
 
         /// <summary>
+        /// Get public site information (includes view count increment)
+        /// </summary>
+        public async Task<ApiResponse<SiteConfigurationDto>> GetPublicSiteInfoAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("/api/SiteConfiguration/public");
+                var json = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var apiResponse = JsonSerializer.Deserialize<BioWeb.client.Models.SiteConfigurationApiResponse<SiteConfigurationDto>>(json, _jsonOptions);
+
+                    if (apiResponse?.Success == true && apiResponse.Data != null)
+                    {
+                        ServerStatusChanged?.Invoke(true, "");
+                        return new ApiResponse<SiteConfigurationDto> { Success = true, Data = apiResponse.Data };
+                    }
+
+                    return new ApiResponse<SiteConfigurationDto> { Success = false, Message = apiResponse?.Message ?? "Invalid response" };
+                }
+
+                ServerStatusChanged?.Invoke(false, $"API returned: {response.StatusCode}");
+                return new ApiResponse<SiteConfigurationDto>
+                {
+                    Success = false,
+                    Message = $"Failed to get public site info: {response.StatusCode}"
+                };
+            }
+            catch (Exception ex)
+            {
+                ServerStatusChanged?.Invoke(false, $"API Error GetPublicSiteInfo: {ex.Message}");
+                return new ApiResponse<SiteConfigurationDto>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
         /// Update site configuration
         /// </summary>
         public async Task<SimpleResponse> UpdateSiteConfigurationAsync(SiteConfigurationDto siteConfig)
@@ -1472,7 +1546,9 @@ namespace BioWeb.client.Services
                 var json = JsonSerializer.Serialize(request, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync($"/api/SiteConfiguration/{siteConfig.ConfigID}", content);
+                var httpRequest = await CreateAuthenticatedRequestAsync(HttpMethod.Put, $"/api/SiteConfiguration/{siteConfig.ConfigID}");
+                httpRequest.Content = content;
+                var response = await _httpClient.SendAsync(httpRequest);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -1535,6 +1611,18 @@ namespace BioWeb.client.Services
                     Message = $"Increment view count error: {ex.Message}"
                 };
             }
+        }
+
+        #endregion
+
+        #region Utility Methods
+
+        /// <summary>
+        /// Lấy base URL của API server
+        /// </summary>
+        public string GetBaseUrl()
+        {
+            return _httpClient.BaseAddress?.ToString().TrimEnd('/') ?? "";
         }
 
         #endregion

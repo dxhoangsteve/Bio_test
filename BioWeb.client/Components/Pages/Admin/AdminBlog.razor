@@ -2,6 +2,7 @@
 @using BioWeb.Shared.Models.DTOs
 @using BioWeb.client.Services
 @using BioWeb.client.Components
+
 @inject IApiService ApiService
 @inject IAuthService AuthService
 @inject IJSRuntime JSRuntime
@@ -22,6 +23,9 @@
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/admin/bio">
                     <i class="fas fa-user me-2"></i>Hồ sơ
+                </a>
+                <a class="nav-link" href="/" target="_blank">
+                    <i class="fas fa-home me-2"></i>Xem trang chính
                 </a>
                 <button class="btn btn-outline-danger btn-sm ms-2" @onclick="Logout">
                     <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
@@ -358,3 +362,53 @@
         ApiService.ServerStatusChanged -= OnServerStatusChanged;
     }
 }
+
+<!-- Floating Home Button -->
+<a href="/" target="_blank" class="floating-home-btn" title="Xem trang chính">
+    <i class="fas fa-home"></i>
+</a>
+
+<style>
+    .floating-home-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        font-size: 18px;
+    }
+
+    .floating-home-btn:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        text-decoration: none;
+    }
+
+    .floating-home-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .floating-home-btn {
+            top: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            font-size: 16px;
+        }
+    }
+</style>

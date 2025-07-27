@@ -88,6 +88,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvRmlsZVVwbG9hZENvbXBvbmVudC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/sterb/dev/Bio_test/BioWeb.client/Components/Shared/FloatingHomeButton.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvRmxvYXRpbmdIb21lQnV0dG9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/sterb/dev/Bio_test/BioWeb.client/Components/Shared/NotificationComponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvTm90aWZpY2F0aW9uQ29tcG9uZW50LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

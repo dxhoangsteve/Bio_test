@@ -59,6 +59,49 @@
     font-weight: 500;
 }
 
+/* Project Carousel Styles */
+.project-carousel-container {
+    position: relative;
+    padding: 0 50px;
+}
+
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.carousel-nav-left {
+    left: 0;
+}
+
+.carousel-nav-right {
+    right: 0;
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.carousel-nav-btn i {
+    font-size: 1.1rem;
+}
+
 /* Bootstrap 5 gap utilities work well, minimal custom CSS needed */
 @media (max-width: 768px) {
     .btn-lg {
@@ -67,5 +110,18 @@
 
     .stat-number {
         font-size: 1.5rem;
+    }
+
+    .project-carousel-container {
+        padding: 0 30px;
+    }
+
+    .carousel-nav-btn {
+        width: 35px;
+        height: 35px;
+    }
+
+    .carousel-nav-btn i {
+        font-size: 1rem;
     }
 }
