@@ -1,0 +1,296 @@
+@page "/"
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@inject IApiService ApiService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>@(aboutMe?.FullName ?? "Xuan Hoang") - Bio</PageTitle>
+
+<!-- Server Status Component -->
+<ServerStatusComponent IsServerDown="@isServerDown" ErrorMessage="@serverErrorMessage" OnRetry="@HandleRetry" />
+
+@if (!isServerDown)
+{
+    @if (isLoading)
+    {
+        <div class="main-content">
+            <div class="bio-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-3">Đang tải thông tin...</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="main-content">
+            <div class="bio-container">
+                <!-- Bio Header Card - Tên và Job Title -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body text-center py-5">
+                        @if (aboutMe != null && !string.IsNullOrEmpty(aboutMe.AvatarURL))
+                        {
+                            <img src="@aboutMe.AvatarURL" alt="@aboutMe.FullName" class="rounded-circle mb-3"
+                                style="width: 120px; height: 120px; object-fit: cover;" />
+                        }
+
+                        @if (aboutMe != null)
+                        {
+                            <h1 class="display-5 fw-bold mb-2">@aboutMe.FullName</h1>
+                            <h2 class="fs-4 text-muted mb-0">@aboutMe.JobTitle</h2>
+                        }
+                        else
+                        {
+                            <h1 class="display-5 fw-bold">Đang tải thông tin...</h1>
+                        }
+                    </div>
+                </div>
+
+                <!-- Social & Contact Row-->
+                <div class="row mb-4">
+                    <!-- Social Media Card -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body text-center">
+                                <h5 class="card-title mb-3">Mạng xã hội</h5>
+                                @if (contact != null)
+                                {
+                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                        @if (!string.IsNullOrEmpty(contact.FacebookURL))
+                                        {
+                                            <a href="@contact.FacebookURL" target="_blank" class="btn btn-primary btn-sm rounded-2">
+                                                <i class="fab fa-facebook-f me-2"></i>Facebook
+                                            </a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(contact.LinkedInURL))
+                                        {
+                                            <a href="@contact.LinkedInURL" target="_blank" class="btn btn-sm rounded-2"
+                                                style="background-color: #0077b5; color: white; border-color: #0077b5;">
+                                                <i class="fab fa-linkedin-in me-2"></i>LinkedIn
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Card -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body text-center">
+                                <h5 class="card-title mb-3">Liên hệ</h5>
+                                @if (contact != null)
+                                {
+                                    <div class="text-start">
+                                        @if (!string.IsNullOrEmpty(contact.Email))
+                                        {
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-envelope text-muted me-2"></i>
+                                                <small class="text-muted">@contact.Email</small>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(contact.PhoneNumber))
+                                        {
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-phone text-muted me-2"></i>
+                                                <small class="text-muted">@contact.PhoneNumber</small>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(contact.Address))
+                                        {
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                                <small class="text-muted">@contact.Address</small>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Section -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-center mb-4">Các dự án đã tham gia</h5>
+
+                        @if (projects != null && projects.Any())
+                        {
+                            <div class="row">
+                                @foreach (var project in projects.Take(6))
+                                {
+                                    <div class="col-lg-6 col-md-6 col-12 mb-3">
+                                        <div class="card h-100 border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title fw-bold">@project.ProjectName</h6>
+                                                <p class="card-text text-muted small mb-3">@project.Technologies</p>
+                                                @if (!string.IsNullOrEmpty(project.GitHubURL))
+                                                {
+                                                    <a href="@project.GitHubURL" target="_blank" class="btn btn-dark btn-sm rounded-2">
+                                                        <i class="fas fa-external-link-alt me-2"></i>Xem dự án
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-3">
+                                <p class="text-muted">Đang tải dự án...</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- About Section - Bio Summary -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-center mb-3">Về tôi</h5>
+                        @if (aboutMe != null)
+                        {
+                            <p class="card-text text-justify lh-lg">@aboutMe.BioSummary</p>
+                        }
+                        else
+                        {
+                            <p class="card-text text-muted">Đang tải thông tin...</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Work Section -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        <h5 class="card-title mb-4">Công việc</h5>
+
+                        @if (contact != null)
+                        {
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                @if (!string.IsNullOrEmpty(contact.GitHubURL))
+                                {
+                                    <a href="@contact.GitHubURL" target="_blank"
+                                        class="btn btn-outline-dark btn-lg rounded-3 d-flex flex-column align-items-center p-3"
+                                        style="min-width: 120px;">
+                                        <i class="fab fa-github fa-2x mb-2"></i>
+                                        <span class="fw-bold">GitHub</span>
+                                        <small class="text-muted">Mã nguồn</small>
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(contact.CV_FilePath))
+                                {
+                                    <a href="@contact.CV_FilePath" target="_blank"
+                                        class="btn btn-outline-danger btn-lg rounded-3 d-flex flex-column align-items-center p-3"
+                                        style="min-width: 120px;">
+                                        <i class="fas fa-file-pdf fa-2x mb-2"></i>
+                                        <span class="fw-bold">CV</span>
+                                        <small class="text-muted">Tải xuống</small>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="bio-footer">
+                    <p><i class="fas fa-copyright"></i> 2025 Xuan Hoang - All rights reserved</p>
+                    <p><a href="https://dxhoang.site" target="_blank">dxhoang.site</a></p>
+                </footer>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private AboutMeDto? aboutMe;
+    private List<ProjectDto> projects = new();
+    private ContactInfoDto? contact;
+    private bool isLoading = true;
+    private bool isServerDown = false;
+    private string serverErrorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to server status changes
+        ApiService.ServerStatusChanged += OnServerStatusChanged;
+
+        // Check server health first
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadBioData();
+        }
+    }
+
+    private void OnServerStatusChanged(bool isHealthy, string errorMessage)
+    {
+        isServerDown = !isHealthy;
+        serverErrorMessage = errorMessage;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadBioData()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Load all data concurrently
+            var aboutMeTask = ApiService.GetAboutMeAsync();
+            var projectsTask = ApiService.GetPublishedProjectsAsync();
+            var contactTask = ApiService.GetContactInfoDto();
+
+            await Task.WhenAll(aboutMeTask, projectsTask, contactTask);
+
+            aboutMe = await aboutMeTask;
+            projects = await projectsTask;
+            contact = await contactTask;
+
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading bio data: {ex.Message}");
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleRetry()
+    {
+        isServerDown = false;
+        serverErrorMessage = "";
+        StateHasChanged();
+
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadBioData();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", "Bio page loaded");
+        }
+    }
+
+    public void Dispose()
+    {
+        ApiService.ServerStatusChanged -= OnServerStatusChanged;
+    }
+}

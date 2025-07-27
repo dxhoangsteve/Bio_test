@@ -1,77 +1,76 @@
 @inherits LayoutComponentBase
 
-<div class="gradient-background">
-    <div class="container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-12 col-lg-10 col-xl-8">
-                <div class="glass-container my-4">
-                    @if (!IsAdminPage())
-                    {
-                        <nav class="glass-navbar">
-                            <!-- Mobile menu toggle button -->
-                            <button class="mobile-menu-toggle d-lg-none" @onclick="ToggleMobileMenu">
-                                <i class="fas fa-bars"></i>
-                            </button>
-
-                            <!-- Navigation items -->
-                            <div class="nav-items @(isMobileMenuOpen ? "mobile-open" : "")">
-                                <a href="/" class="nav-item @(IsActive("/") ? "active" : "")" @onclick="CloseMobileMenu">
-                                    <i class="fa-solid fa-blog"></i>
-                                </a>
-                                <a href="/about-me" class="nav-item @(IsActive("/about-me") ? "active" : "")"
-                                    @onclick="CloseMobileMenu">
-                                    About Me
-                                </a>
-                                <a href="/projects" class="nav-item @(IsActive("/projects") ? "active" : "")"
-                                    @onclick="CloseMobileMenu">
-                                    My Project
-                                </a>
-                                <a href="/blog" class="nav-item @(IsActive("/blog") ? "active" : "")"
-                                    @onclick="CloseMobileMenu">
-                                    Blog
-                                </a>
-                                <a href="/contact" class="nav-item @(IsActive("/contact") ? "active" : "")"
-                                    @onclick="CloseMobileMenu">
-                                    Contact Me
-                                </a>
-                            </div>
-                        </nav>
-                    }
-                    <!-- Content Area -->
-                    <div class="glass-content">
-                        @Body
-                    </div>
-                </div>
+<!-- Fixed Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
+    <div class="container">
+        @if (IsActive("/blog"))
+        {
+            <a class="navbar-brand fw-bold fs-4" href="/blog">Blog</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Bio</a>
             </div>
-        </div>
+        }
+        else
+        {
+            <a class="navbar-brand fw-bold fs-4" href="/">Portfolio</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/blog">Blog</a>
+            </div>
+        }
     </div>
+</nav>
+
+<!-- Main Content with top padding for fixed header -->
+<div class="main-content">
+    @Body
 </div>
 
+<!-- Theme Switcher -->
+<button class="theme-switcher" @onclick="ToggleTheme" title="Chuyển đổi theme">
+    <i class="@(isDarkTheme ? "fas fa-sun" : "fas fa-moon")"></i>
+</button>
+
 @code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
+    private bool isDarkTheme = false;
 
     private bool IsActive(string href)
     {
         var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (href == "/" && string.IsNullOrEmpty(currentPath))
+            return true;
         return currentPath.StartsWith(href.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
     }
 
-    private bool IsAdminPage()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
-        return currentPath.StartsWith("admin", StringComparison.OrdinalIgnoreCase) ||
-        currentPath.StartsWith("me/admin", StringComparison.OrdinalIgnoreCase);
+        if (firstRender)
+        {
+            // Load theme preference from localStorage
+            var savedTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
+            isDarkTheme = savedTheme == "dark";
+            await ApplyTheme();
+            StateHasChanged();
+        }
     }
 
-    private bool isMobileMenuOpen = false;
-
-    private void ToggleMobileMenu()
+    private async Task ToggleTheme()
     {
-        isMobileMenuOpen = !isMobileMenuOpen;
+        isDarkTheme = !isDarkTheme;
+        await ApplyTheme();
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "theme", isDarkTheme ? "dark" : "light");
     }
 
-    private void CloseMobileMenu()
+    private async Task ApplyTheme()
     {
-        isMobileMenuOpen = false;
+        if (isDarkTheme)
+        {
+            await JSRuntime.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", "dark");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("document.documentElement.removeAttribute", "data-theme");
+        }
     }
 }
