@@ -2,6 +2,7 @@
 @using BioWeb.Shared.Models.DTOs
 @using BioWeb.client.Services
 @using BioWeb.client.Components
+@using Microsoft.AspNetCore.Components.Web
 @inject IApiService ApiService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
@@ -29,241 +30,261 @@
     }
     else
     {
-        <div class="main-content">
+        <div class="main-content bio-main">
+            <!-- Bio Header Section - Full width -->
+            <div class="bio-header">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <!-- Avatar Column -->
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            @if (aboutMe != null && !string.IsNullOrEmpty(aboutMe.AvatarURL))
+                            {
+                                <img src="@GetImageUrl(aboutMe.AvatarURL)" alt="@aboutMe.FullName"
+                                     class="bio-avatar rounded-circle shadow" />
+                            }
+                            else
+                            {
+                                <div class="bio-avatar-placeholder rounded-circle shadow d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-user fa-3x text-muted"></i>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Info Column -->
+                        <div class="col-md-8">
+                            @if (aboutMe != null)
+                            {
+                                <h1 class="bio-name mb-2">
+                                    Xin chào, tôi là <span class="text-primary">@aboutMe.FullName</span>
+                                </h1>
+                                <h2 class="bio-job-title mb-3">@aboutMe.JobTitle</h2>
+                                @if (!string.IsNullOrEmpty(aboutMe.BioSummary))
+                                {
+                                    <p class="bio-summary text-muted lh-lg">@aboutMe.BioSummary</p>
+                                }
+                            }
+                            else
+                            {
+                                <h1 class="bio-name">Đang tải thông tin...</h1>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Container -->
             <div class="bio-container">
-                <!-- Bio Header Card - Tên và Job Title -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body text-center py-5">
-                        @if (aboutMe != null && !string.IsNullOrEmpty(aboutMe.AvatarURL))
-                        {
-                            <img src="@GetImageUrl(aboutMe.AvatarURL)" alt="@aboutMe.FullName" class="rounded-circle mb-3"
-                                style="width: 120px; height: 120px; object-fit: cover;" />
-                        }
 
-                        @if (aboutMe != null)
-                        {
-                            <h1 class="display-5 fw-bold mb-2">@aboutMe.FullName</h1>
-                            <h2 class="fs-4 text-muted mb-0">@aboutMe.JobTitle</h2>
-                        }
-                        else
-                        {
-                            <h1 class="display-5 fw-bold">Đang tải thông tin...</h1>
-                        }
-                    </div>
-                </div>
-
-                <!-- Social & Contact Row-->
-                <div class="row mb-4">
-                    <!-- Social Media Card -->
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body text-center">
-                                <h5 class="card-title mb-4 fw-bold">
-                                    <i class="fas fa-share-alt me-2"></i>Mạng xã hội
-                                </h5>
-                                @if (contact != null)
-                                {
-                                    <div class="d-flex justify-content-center gap-3 flex-wrap">
-                                        @if (!string.IsNullOrEmpty(contact.FacebookURL))
-                                        {
-                                            <a href="@contact.FacebookURL" target="_blank" class="social-btn facebook-btn"
-                                                title="Facebook">
-                                                <i class="fab fa-facebook-f"></i>
-                                            </a>
-                                        }
-                                        @if (!string.IsNullOrEmpty(contact.LinkedInURL))
-                                        {
-                                            <a href="@contact.LinkedInURL" target="_blank" class="social-btn linkedin-btn"
-                                                title="LinkedIn">
-                                                <i class="fab fa-linkedin-in"></i>
-                                            </a>
-                                        }
-                                        @if (!string.IsNullOrEmpty(contact.GitHubURL))
-                                        {
-                                            <a href="@contact.GitHubURL" target="_blank" class="social-btn github-btn" title="GitHub">
-                                                <i class="fab fa-github"></i>
-                                            </a>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-info-circle me-2"></i>Chưa có thông tin mạng xã hội
-                                    </p>
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Contact Card -->
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body text-center">
-                                <h5 class="card-title mb-3">Liên hệ</h5>
-                                @if (contact != null)
-                                {
-                                    <div class="text-start">
-                                        @if (!string.IsNullOrEmpty(contact.Email))
-                                        {
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="fas fa-envelope text-muted me-2"></i>
-                                                <small class="text-muted">@contact.Email</small>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(contact.PhoneNumber))
-                                        {
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="fas fa-phone text-muted me-2"></i>
-                                                <small class="text-muted">@contact.PhoneNumber</small>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(contact.Address))
-                                        {
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
-                                                <small class="text-muted">@contact.Address</small>
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Projects Section -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title text-center mb-4">
-                            <i class="fas fa-code me-2"></i>Các dự án đã tham gia
-                        </h5>
-
-                        @if (projects != null && projects.Any())
-                        {
-                            <div class="row g-4">
-                                @foreach (var project in projects.Take(6))
-                                {
-                                    <div class="col-lg-4 col-md-6 col-12">
-                                        <div class="project-card h-100">
-                                            @if (!string.IsNullOrEmpty(project.ThumbnailURL))
+                <!-- 3 Boxes Section -->
+                <div class="info-boxes-section">
+                    <div class="row g-4 mb-5">
+                        <!-- Contact Box -->
+                        <div class="col-lg-4 col-md-6">
+                            <div class="info-box shadow-sm h-100">
+                                <div class="info-box-header">
+                                    <h5 class="info-box-title">
+                                        <i class="fas fa-phone me-2 text-primary"></i>Liên hệ
+                                    </h5>
+                                </div>
+                                <div class="info-box-body">
+                                    @if (contact != null)
+                                    {
+                                        <div class="contact-items-container">
+                                            @if (!string.IsNullOrEmpty(contact.Email))
                                             {
-                                                <div class="project-image">
-                                                    <img src="@project.ThumbnailURL" alt="@project.ProjectName" />
-                                                    <div class="project-overlay">
+                                                <div class="contact-item">
+                                                    <i class="fas fa-envelope text-muted me-2"></i>
+                                                    <span>@contact.Email</span>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(contact.PhoneNumber))
+                                            {
+                                                <div class="contact-item">
+                                                    <i class="fas fa-phone text-muted me-2"></i>
+                                                    <span>@contact.PhoneNumber</span>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(contact.Address))
+                                            {
+                                                <div class="contact-item">
+                                                    <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                                    <span>@contact.Address</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Đang tải thông tin...</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Social Media Box -->
+                        <div class="col-lg-4 col-md-6">
+                            <div class="info-box shadow-sm h-100">
+                                <div class="info-box-header">
+                                    <h5 class="info-box-title">
+                                        <i class="fas fa-share-alt me-2 text-primary"></i>Mạng xã hội
+                                    </h5>
+                                </div>
+                                <div class="info-box-body">
+                                    @if (contact != null)
+                                    {
+                                        <div class="social-links">
+                                            @if (!string.IsNullOrEmpty(contact.FacebookURL))
+                                            {
+                                                <a href="@contact.FacebookURL" target="_blank" class="social-btn facebook-btn"
+                                                    title="Facebook">
+                                                    <i class="fab fa-facebook-f me-2"></i>Facebook
+                                                </a>
+                                            }
+                                            @if (!string.IsNullOrEmpty(contact.LinkedInURL))
+                                            {
+                                                <a href="@contact.LinkedInURL" target="_blank" class="social-btn linkedin-btn"
+                                                    title="LinkedIn">
+                                                    <i class="fab fa-linkedin-in me-2"></i>LinkedIn
+                                                </a>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Đang tải thông tin...</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Portfolio Box -->
+                        <div class="col-lg-4 col-md-12">
+                            <div class="info-box shadow-sm h-100">
+                                <div class="info-box-header">
+                                    <h5 class="info-box-title">
+                                        <i class="fas fa-briefcase me-2 text-primary"></i>Portfolio
+                                    </h5>
+                                </div>
+                                <div class="info-box-body">
+                                    @if (contact != null)
+                                    {
+                                        <div class="portfolio-links">
+                                            @if (!string.IsNullOrEmpty(contact.GitHubURL))
+                                            {
+                                                <a href="@contact.GitHubURL" target="_blank"
+                                                    class="portfolio-btn github-portfolio">
+                                                    <i class="fab fa-github me-2"></i>GitHub
+                                                </a>
+                                            }
+                                            @if (!string.IsNullOrEmpty(contact.CV_FilePath))
+                                            {
+                                                <a href="@contact.CV_FilePath" target="_blank"
+                                                    class="portfolio-btn cv-portfolio">
+                                                    <i class="fas fa-file-pdf me-2"></i>Tải CV
+                                                </a>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Đang tải thông tin...</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Section - 80% width -->
+                <div class="projects-section">
+                    <div class="projects-container">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-center mb-4">
+                                    <i class="fas fa-code me-2"></i>Các dự án đã tham gia
+                                </h5>
+
+                                @if (projects != null && projects.Any())
+                                {
+                                    <div class="row g-4">
+                                        @foreach (var project in projects.Take(6))
+                                        {
+                                            <div class="col-lg-4 col-md-6 col-12">
+                                                <div class="project-card h-100">
+                                                    @if (!string.IsNullOrEmpty(project.ThumbnailURL))
+                                                    {
+                                                        <div class="project-image">
+                                                            <img src="@project.ThumbnailURL" alt="@project.ProjectName" />
+                                                            <div class="project-overlay">
+                                                                <div class="project-links">
+                                                                    @if (!string.IsNullOrEmpty(project.GitHubURL))
+                                                                    {
+                                                                        <a href="@project.GitHubURL" target="_blank" class="project-link github-link"
+                                                                            title="GitHub">
+                                                                            <i class="fab fa-github"></i>
+                                                                        </a>
+                                                                    }
+                                                                    @if (!string.IsNullOrEmpty(project.ProjectURL))
+                                                                    {
+                                                                        <a href="@project.ProjectURL" target="_blank" class="project-link demo-link"
+                                                                            title="Demo">
+                                                                            <i class="fas fa-external-link-alt"></i>
+                                                                        </a>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    <div class="project-content">
+                                                        <h6 class="project-title">@project.ProjectName</h6>
+                                                        @if (!string.IsNullOrEmpty(project.Description))
+                                                        {
+                                                            <p class="project-description">@project.Description</p>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(project.Technologies))
+                                                        {
+                                                            <div class="project-tech mb-3">
+                                                                @foreach (var tech in project.Technologies.Split(',',
+                                                                                                    StringSplitOptions.RemoveEmptyEntries))
+                                                                {
+                                                                    <span class="tech-tag">@tech.Trim()</span>
+                                                                }
+                                                            </div>
+                                                        }
                                                         <div class="project-links">
                                                             @if (!string.IsNullOrEmpty(project.GitHubURL))
                                                             {
-                                                                <a href="@project.GitHubURL" target="_blank" class="project-link github-link"
-                                                                    title="GitHub">
-                                                                    <i class="fab fa-github"></i>
+                                                                <a href="@project.GitHubURL" target="_blank"
+                                                                    class="btn btn-outline-dark btn-sm me-2">
+                                                                    <i class="fab fa-github me-1"></i>GitHub
                                                                 </a>
                                                             }
                                                             @if (!string.IsNullOrEmpty(project.ProjectURL))
                                                             {
-                                                                <a href="@project.ProjectURL" target="_blank" class="project-link demo-link"
-                                                                    title="Demo">
-                                                                    <i class="fas fa-external-link-alt"></i>
+                                                                <a href="@project.ProjectURL" target="_blank" class="btn btn-primary btn-sm">
+                                                                    <i class="fas fa-external-link-alt me-1"></i>Xem website
                                                                 </a>
                                                             }
                                                         </div>
                                                     </div>
                                                 </div>
-                                            }
-                                            <div class="project-content">
-                                                <h6 class="project-title">@project.ProjectName</h6>
-                                                @if (!string.IsNullOrEmpty(project.Description))
-                                                {
-                                                    <p class="project-description">@project.Description</p>
-                                                }
-                                                @if (!string.IsNullOrEmpty(project.Technologies))
-                                                {
-                                                    <div class="project-tech mb-3">
-                                                        @foreach (var tech in project.Technologies.Split(',',
-                                                                                            StringSplitOptions.RemoveEmptyEntries))
-                                                        {
-                                                            <span class="tech-tag">@tech.Trim()</span>
-                                                        }
-                                                    </div>
-                                                }
-                                                <div class="project-links">
-                                                    @if (!string.IsNullOrEmpty(project.GitHubURL))
-                                                    {
-                                                        <a href="@project.GitHubURL" target="_blank"
-                                                            class="btn btn-outline-dark btn-sm me-2">
-                                                            <i class="fab fa-github me-1"></i>GitHub
-                                                        </a>
-                                                    }
-                                                    @if (!string.IsNullOrEmpty(project.ProjectURL))
-                                                    {
-                                                        <a href="@project.ProjectURL" target="_blank" class="btn btn-primary btn-sm">
-                                                            <i class="fas fa-external-link-alt me-1"></i>Xem website
-                                                        </a>
-                                                    }
-                                                </div>
                                             </div>
-                                        </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-code fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">Đang tải dự án...</p>
                                     </div>
                                 }
                             </div>
-                        }
-                        else
-                        {
-                            <div class="text-center py-5">
-                                <i class="fas fa-code fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Đang tải dự án...</p>
-                            </div>
-                        }
+                        </div>
                     </div>
                 </div>
 
-                <!-- About Section - Bio Summary -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title text-center mb-3">Về tôi</h5>
-                        @if (aboutMe != null)
-                        {
-                            <p class="card-text text-justify lh-lg">@aboutMe.BioSummary</p>
-                        }
-                        else
-                        {
-                            <p class="card-text text-muted">Đang tải thông tin...</p>
-                        }
-                    </div>
-                </div>
 
-                <!-- Work Section -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body text-center">
-                        <h5 class="card-title mb-4">Công việc</h5>
-
-                        @if (contact != null)
-                        {
-                            <div class="d-flex justify-content-center gap-3 flex-wrap">
-                                @if (!string.IsNullOrEmpty(contact.GitHubURL))
-                                {
-                                    <a href="@contact.GitHubURL" target="_blank"
-                                        class="btn btn-outline-dark btn-lg rounded-3 d-flex flex-column align-items-center p-3"
-                                        style="min-width: 120px;">
-                                        <i class="fab fa-github fa-2x mb-2"></i>
-                                        <span class="fw-bold">GitHub</span>
-                                        <small class="text-muted">Mã nguồn</small>
-                                    </a>
-                                }
-                                @if (!string.IsNullOrEmpty(contact.CV_FilePath))
-                                {
-                                    <a href="@contact.CV_FilePath" target="_blank"
-                                        class="btn btn-outline-danger btn-lg rounded-3 d-flex flex-column align-items-center p-3"
-                                        style="min-width: 120px;">
-                                        <i class="fas fa-file-pdf fa-2x mb-2"></i>
-                                        <span class="fw-bold">CV</span>
-                                        <small class="text-muted">Tải xuống</small>
-                                    </a>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
 
                 <!-- Footer -->
                 <footer class="bio-footer">
@@ -371,24 +392,194 @@
 }
 
 <style>
+    /* Bio Main Layout */
+    .bio-main {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 0;
+    }
+
+    .bio-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    /* Bio Header - Full width */
+    .bio-header {
+        background: white;
+        width: 100%;
+        padding: 3rem 0;
+        margin-bottom: 0;
+    }
+
+    .bio-avatar {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border: 4px solid white;
+    }
+
+    .bio-avatar-placeholder {
+        width: 200px;
+        height: 200px;
+        background: #f8f9fa;
+        border: 4px solid white;
+    }
+
+    .bio-name {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .bio-job-title {
+        font-size: 1.5rem;
+        color: #6c757d;
+        font-weight: 400;
+        margin-bottom: 1rem;
+    }
+
+    .bio-summary {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #666;
+    }
+
+    /* Info Boxes Section */
+    .info-boxes-section {
+        padding: 3rem 0;
+    }
+
+    .info-box {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .info-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .info-box-header {
+        padding: 1.5rem 1.5rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .info-box-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .info-box-body {
+        padding: 1rem 1.5rem 1.5rem;
+    }
+
+    /* Contact Items - Each item on separate line */
+    .contact-items-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        font-size: 0.95rem;
+    }
+
+    /* Social Links - centered */
+    .social-links {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        min-height: 80px;
+    }
+
+    /* Portfolio Links - 2 buttons per row, centered */
+    .portfolio-links {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        min-height: 80px;
+    }
+
+    .portfolio-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.6rem 0.8rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        font-size: 0.8rem;
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+        height: 48px;
+    }
+
+    .github-portfolio {
+        background: #333;
+        color: white;
+    }
+
+    .github-portfolio:hover {
+        background: #555;
+        color: white;
+    }
+
+    .cv-portfolio {
+        background: #dc3545;
+        color: white;
+    }
+
+    .cv-portfolio:hover {
+        background: #c82333;
+        color: white;
+    }
+
+    /* Projects Section */
+    .projects-section {
+        padding: 2rem 0;
+    }
+
+    .projects-container {
+        max-width: 80%;
+        margin: 0 auto;
+    }
+
+    /* Social Buttons - Fixed width like portfolio buttons */
     .social-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 45px;
-        height: 45px;
+        padding: 0.6rem 0.8rem;
         border-radius: 8px;
         color: white;
         text-decoration: none;
-        font-size: 18px;
+        font-size: 0.8rem;
+        font-weight: 500;
         transition: all 0.3s ease;
-        margin: 0 5px;
+        height: 48px;
+        min-width: 120px;
+        max-width: 140px;
     }
 
     .social-btn:hover {
         transform: translateY(-2px);
         color: white;
-        opacity: 0.8;
+        opacity: 0.9;
     }
 
     .facebook-btn {
@@ -406,7 +597,7 @@
     /* Project Cards */
     .project-card {
         background: white;
-        border-radius: 8px;
+        border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
@@ -414,38 +605,85 @@
     }
 
     .project-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
     .project-image {
         height: 180px;
         overflow: hidden;
         background: #f8f9fa;
+        position: relative;
     }
 
     .project-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .project-card:hover .project-image img {
+        transform: scale(1.05);
+    }
+
+    .project-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .project-card:hover .project-overlay {
+        opacity: 1;
+    }
+
+    .project-links {
+        display: flex;
+        gap: 10px;
+    }
+
+    .project-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: white;
+        color: #333;
+        border-radius: 50%;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .project-link:hover {
+        transform: scale(1.1);
+        color: #007bff;
     }
 
     .project-content {
-        padding: 16px;
+        padding: 1.5rem;
     }
 
     .project-title {
-        font-size: 16px;
+        font-size: 1.1rem;
         font-weight: 600;
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
         color: #333;
     }
 
     .project-description {
         color: #666;
-        font-size: 14px;
-        line-height: 1.4;
-        margin-bottom: 12px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -456,15 +694,60 @@
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
+        margin-bottom: 1rem;
     }
 
     .tech-tag {
-        background: #f8f9fa;
+        background: #e9ecef;
         color: #495057;
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
         font-weight: 500;
-        border: 1px solid #dee2e6;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .bio-name {
+            font-size: 2rem;
+        }
+
+        .bio-job-title {
+            font-size: 1.25rem;
+        }
+
+        .bio-avatar,
+        .bio-avatar-placeholder {
+            width: 150px;
+            height: 150px;
+        }
+
+        .bio-header {
+            padding: 2rem 0;
+        }
+
+        .info-boxes-section {
+            padding: 2rem 0;
+        }
+
+        .projects-container {
+            max-width: 95%;
+        }
+
+        .portfolio-links {
+            flex-direction: row;
+            gap: 6px;
+        }
+
+        .portfolio-btn {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.5rem;
+        }
+
+        .social-btn {
+            min-width: 100px;
+            max-width: 120px;
+            font-size: 0.75rem;
+        }
     }
 </style>

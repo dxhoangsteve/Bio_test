@@ -65,7 +65,7 @@
                                 </h5>
                                 <FileUploadComponent UploadEndpoint="/api/upload/avatar" AcceptedTypes="image/*" MaxSizeInMB="5"
                                     CurrentImageUrl="@avatarUrl" Label="Ảnh đại diện"
-                                    OnUploadSuccess="HandleAvatarUploadSuccess" OnRemoveImage="HandleRemoveAvatar" />
+                                    OnUploadSuccess="HandleAvatarUploadSuccess" OnRemoveImage="@(async () => await HandleRemoveAvatar())" />
                             </div>
                         </div>
 
@@ -396,10 +396,29 @@
         StateHasChanged();
     }
 
-    private void HandleRemoveAvatar()
+    private async Task HandleRemoveAvatar()
     {
         avatarUrl = "";
         StateHasChanged();
+
+        // Auto-save avatar removal
+        if (aboutMe != null)
+        {
+            aboutMe.AvatarURL = "";
+            var response = await ApiService.UpdateAboutMeAsync(aboutMe);
+
+            if (response.Success)
+            {
+                await notificationComponent?.ShowAsync("Thành công", "Đã xóa ảnh đại diện", NotificationComponent.NotificationType.Success)!;
+            }
+            else
+            {
+                // Revert if failed
+                avatarUrl = aboutMe.AvatarURL ?? "";
+                await notificationComponent?.ShowAsync("Lỗi", $"Xóa ảnh đại diện thất bại: {response.Message}", NotificationComponent.NotificationType.Error)!;
+                StateHasChanged();
+            }
+        }
     }
 
     // CV methods

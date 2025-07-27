@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BioWeb.client")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4f7edf2282ecaa2931509c0e6e1bf90cce6f12bc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fe8cd47f8c7674fa9d7666139c7d5f26c16ae59f")]
 [assembly: System.Reflection.AssemblyProductAttribute("BioWeb.client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BioWeb.client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
