@@ -25,15 +25,10 @@
     @Body
 </div>
 
-<!-- Theme Switcher -->
-<button class="theme-switcher" @onclick="ToggleTheme" title="Chuyển đổi theme">
-    <i class="@(isDarkTheme ? "fas fa-sun" : "fas fa-moon")"></i>
-</button>
+
 
 @code {
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
-    private bool isDarkTheme = false;
 
     private bool IsActive(string href)
     {
@@ -41,36 +36,5 @@
         if (href == "/" && string.IsNullOrEmpty(currentPath))
             return true;
         return currentPath.StartsWith(href.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Load theme preference from localStorage
-            var savedTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
-            isDarkTheme = savedTheme == "dark";
-            await ApplyTheme();
-            StateHasChanged();
-        }
-    }
-
-    private async Task ToggleTheme()
-    {
-        isDarkTheme = !isDarkTheme;
-        await ApplyTheme();
-        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "theme", isDarkTheme ? "dark" : "light");
-    }
-
-    private async Task ApplyTheme()
-    {
-        if (isDarkTheme)
-        {
-            await JSRuntime.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", "dark");
-        }
-        else
-        {
-            await JSRuntime.InvokeVoidAsync("document.documentElement.removeAttribute", "data-theme");
-        }
     }
 }

@@ -3,35 +3,48 @@
 @inject IApiService ApiService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@layout EmptyLayout
 
-<PageTitle>Admin Login</PageTitle>
+<PageTitle>Đăng nhập Quản trị</PageTitle>
 
-<div class="container">
-    <div class="row align-items-center justify-content-center ml-5 mr-5">
-        <h1 class="admin-login-title text-centers">Admin Login</h1>
-        <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
-            <div class="form-group mt-5">
-                <label for="username">Username</label>
-                <input type="text" class="form-control" id="username" @bind-value="username" required />
+<link href="css/admin-login.css" rel="stylesheet" />
+
+<div class="login-container d-flex align-items-center justify-content-center p-3">
+    <div class="login-card w-100 p-4">
+        <div class="text-center mb-4">
+            <h2 class="login-title mb-0">Đăng nhập Quản trị</h2>
+        </div>
+
+        <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true" class="login-form">
+            <div class="mb-3">
+                <label for="username" class="form-label fw-medium text-dark">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="username" @bind-value="username" placeholder="admin"
+                    required />
             </div>
-            <div class="form-group mt-5">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" @bind-value="password" required />
+
+            <div class="mb-3">
+                <label for="password" class="form-label fw-medium text-dark">Mật khẩu</label>
+                <input type="password" class="form-control" id="password" @bind-value="password" placeholder="••••••"
+                    required />
             </div>
-            <button type="submit" class="btn btn-primary mt-5" disabled="@isLoading">
+
+            <button type="submit" class="btn btn-login w-100 mt-2" disabled="@isLoading">
                 @if (isLoading)
                 {
-                    <i class="fas fa-spinner fa-spin"></i>
+                    <span><i class="fas fa-spinner fa-spin me-2"></i>Đang đăng nhập...</span>
                 }
                 else
                 {
-                    <span>Login</span>
+                    <span>Đăng nhập</span>
                 }
             </button>
         </form>
+
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="error-message">@errorMessage</div>
+            <div class="alert alert-danger mt-3" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+            </div>
         }
     </div>
 </div>
@@ -66,8 +79,8 @@
                     await ApiService.SetAuthTokenAsync(response.Token);
                 }
 
-                // Navigate đến admin dashboard
-                Navigation.NavigateTo("/admin/dashboard");
+                // Navigate đến admin bio
+                Navigation.NavigateTo("/admin/bio");
             }
             else
             {

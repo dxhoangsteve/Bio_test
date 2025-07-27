@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using BioWeb.Server.Attributes;
 using BioWeb.Server.ViewModels.Responses;
 using BioWeb.Server.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace BioWeb.Server.Controllers
 {
@@ -33,14 +34,17 @@ namespace BioWeb.Server.Controllers
         /// </summary>
         [HttpPost("avatar")]
         [AdminAuth]
-        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadAvatar(IFormFile file, [FromForm] string? oldFileName = null, [FromForm] bool autoSave = false)
+        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadAvatar(
+            [Required] IFormFile file,
+            [FromForm] string oldFileName = "",
+            [FromForm] bool autoSave = false)
         {
             try
             {
                 _logger.LogInformation("UploadAvatar called with autoSave: {AutoSave}", autoSave);
 
                 // Xóa file cũ nếu có
-                if (!string.IsNullOrEmpty(oldFileName))
+                if (!string.IsNullOrEmpty(oldFileName) && oldFileName != "")
                 {
                     DeleteOldFile("avatars", oldFileName);
                 }
@@ -79,12 +83,14 @@ namespace BioWeb.Server.Controllers
         /// </summary>
         [HttpPost("project-thumbnail")]
         [AdminAuth]
-        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadProjectThumbnail(IFormFile file, [FromForm] string? oldFileName = null)
+        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadProjectThumbnail(
+            [Required] IFormFile file,
+            [FromForm] string oldFileName = "")
         {
             try
             {
                 // Xóa file cũ nếu có
-                if (!string.IsNullOrEmpty(oldFileName))
+                if (!string.IsNullOrEmpty(oldFileName) && oldFileName != "")
                 {
                     DeleteOldFile("projects", oldFileName);
                 }
@@ -112,12 +118,14 @@ namespace BioWeb.Server.Controllers
         /// </summary>
         [HttpPost("article-thumbnail")]
         [AdminAuth]
-        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadArticleThumbnail(IFormFile file, [FromForm] string? oldFileName = null)
+        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadArticleThumbnail(
+            [Required] IFormFile file,
+            [FromForm] string oldFileName = "")
         {
             try
             {
                 // Xóa file cũ nếu có
-                if (!string.IsNullOrEmpty(oldFileName))
+                if (!string.IsNullOrEmpty(oldFileName) && oldFileName != "")
                 {
                     DeleteOldFile("articles", oldFileName);
                 }
@@ -228,7 +236,10 @@ namespace BioWeb.Server.Controllers
         /// </summary>
         [HttpPost("cv")]
         [AdminAuth]
-        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadCV(IFormFile file, [FromForm] string? oldFileName = null, [FromForm] string? autoSave = null)
+        public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadCV(
+            [Required] IFormFile file,
+            [FromForm] string oldFileName = "",
+            [FromForm] string autoSave = "")
         {
             try
             {
@@ -240,14 +251,14 @@ namespace BioWeb.Server.Controllers
                 }
 
                 // Parse autoSave parameter
-                bool autoSaveEnabled = !string.IsNullOrEmpty(autoSave) &&
+                bool autoSaveEnabled = !string.IsNullOrEmpty(autoSave) && autoSave != "" &&
                                       (autoSave.ToLower() == "true" || autoSave == "1");
 
                 _logger.LogInformation("UploadCV called with file: {FileName}, oldFileName: {OldFileName}, autoSave: {AutoSave} (parsed: {AutoSaveEnabled})",
                                      file?.FileName, oldFileName, autoSave, autoSaveEnabled);
 
                 // Xóa file cũ nếu có
-                if (!string.IsNullOrEmpty(oldFileName))
+                if (!string.IsNullOrEmpty(oldFileName) && oldFileName != "")
                 {
                     DeleteOldFile("cv", oldFileName);
                 }

@@ -1,77 +1,19 @@
-/* Main CSS - Simple Light/Dark Theme */
-
-:root {
-    /* Light theme variables */
-    --bg-color: #ffffff;
-    --text-color: #000000;
-    --text-secondary: #666666;
-    --border-color: #e0e0e0;
-    --card-bg: #f8f9fa;
-    --hover-bg: #f0f0f0;
-    --shadow: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="dark"] {
-    /* Dark theme variables */
-    --bg-color: #000000;
-    --text-color: #ffffff;
-    --text-secondary: #cccccc;
-    --border-color: #333333;
-    --card-bg: #1a1a1a;
-    --hover-bg: #2a2a2a;
-    --shadow: rgba(255, 255, 255, 0.1);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* Main CSS - Light Theme Only */
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: #ffffff;
+    color: #000000;
 }
 
-/* Fixed Navbar Styles */
-.navbar {
-    transition: all 0.3s ease;
-}
-
-.navbar-brand {
-    font-weight: 700 !important;
-}
-
+/* Navbar styles */
 .nav-link {
-    font-weight: 500;
-    padding: 0.5rem 1rem !important;
     border-radius: 20px;
     transition: all 0.3s ease;
-    margin: 0 0.25rem;
 }
 
-.nav-link:hover,
-.nav-link.active {
-    background-color: var(--text-color) !important;
-    color: var(--bg-color) !important;
-}
-
-[data-theme="dark"] .navbar-light {
+.nav-link:hover {
     background-color: #000000 !important;
-}
-
-[data-theme="dark"] .navbar-light .navbar-brand,
-[data-theme="dark"] .navbar-light .nav-link {
     color: #ffffff !important;
-}
-
-[data-theme="dark"] .nav-link:hover,
-[data-theme="dark"] .nav-link.active {
-    background-color: #ffffff !important;
-    color: #000000 !important;
 }
 
 /* Theme Switcher Float Button */
@@ -367,6 +309,35 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 0.9rem;
+}
+
+/* Category Scroll Container */
+.category-scroll-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.category-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    padding-bottom: 5px;
+}
+
+.category-scroll::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+/* Smooth scrolling on mobile */
+@media (max-width: 768px) {
+    .category-scroll {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
 }
 
 .category-filter:hover,

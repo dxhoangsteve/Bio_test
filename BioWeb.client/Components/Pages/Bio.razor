@@ -36,7 +36,7 @@
                     <div class="card-body text-center py-5">
                         @if (aboutMe != null && !string.IsNullOrEmpty(aboutMe.AvatarURL))
                         {
-                            <img src="@aboutMe.AvatarURL" alt="@aboutMe.FullName" class="rounded-circle mb-3"
+                            <img src="@GetImageUrl(aboutMe.AvatarURL)" alt="@aboutMe.FullName" class="rounded-circle mb-3"
                                 style="width: 120px; height: 120px; object-fit: cover;" />
                         }
 
@@ -58,24 +58,39 @@
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 shadow-sm">
                             <div class="card-body text-center">
-                                <h5 class="card-title mb-3">Mạng xã hội</h5>
+                                <h5 class="card-title mb-4 fw-bold">
+                                    <i class="fas fa-share-alt me-2"></i>Mạng xã hội
+                                </h5>
                                 @if (contact != null)
                                 {
-                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <div class="d-flex justify-content-center gap-3 flex-wrap">
                                         @if (!string.IsNullOrEmpty(contact.FacebookURL))
                                         {
-                                            <a href="@contact.FacebookURL" target="_blank" class="btn btn-primary btn-sm rounded-2">
-                                                <i class="fab fa-facebook-f me-2"></i>Facebook
+                                            <a href="@contact.FacebookURL" target="_blank" class="social-btn facebook-btn"
+                                                title="Facebook">
+                                                <i class="fab fa-facebook-f"></i>
                                             </a>
                                         }
                                         @if (!string.IsNullOrEmpty(contact.LinkedInURL))
                                         {
-                                            <a href="@contact.LinkedInURL" target="_blank" class="btn btn-sm rounded-2"
-                                                style="background-color: #0077b5; color: white; border-color: #0077b5;">
-                                                <i class="fab fa-linkedin-in me-2"></i>LinkedIn
+                                            <a href="@contact.LinkedInURL" target="_blank" class="social-btn linkedin-btn"
+                                                title="LinkedIn">
+                                                <i class="fab fa-linkedin-in"></i>
+                                            </a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(contact.GitHubURL))
+                                        {
+                                            <a href="@contact.GitHubURL" target="_blank" class="social-btn github-btn" title="GitHub">
+                                                <i class="fab fa-github"></i>
                                             </a>
                                         }
                                     </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>Chưa có thông tin mạng xã hội
+                                    </p>
                                 }
                             </div>
                         </div>
@@ -120,24 +135,72 @@
                 <!-- Projects Section -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
-                        <h5 class="card-title text-center mb-4">Các dự án đã tham gia</h5>
+                        <h5 class="card-title text-center mb-4">
+                            <i class="fas fa-code me-2"></i>Các dự án đã tham gia
+                        </h5>
 
                         @if (projects != null && projects.Any())
                         {
-                            <div class="row">
+                            <div class="row g-4">
                                 @foreach (var project in projects.Take(6))
                                 {
-                                    <div class="col-lg-6 col-md-6 col-12 mb-3">
-                                        <div class="card h-100 border-0 bg-light">
-                                            <div class="card-body">
-                                                <h6 class="card-title fw-bold">@project.ProjectName</h6>
-                                                <p class="card-text text-muted small mb-3">@project.Technologies</p>
-                                                @if (!string.IsNullOrEmpty(project.GitHubURL))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="project-card h-100">
+                                            @if (!string.IsNullOrEmpty(project.ThumbnailURL))
+                                            {
+                                                <div class="project-image">
+                                                    <img src="@project.ThumbnailURL" alt="@project.ProjectName" />
+                                                    <div class="project-overlay">
+                                                        <div class="project-links">
+                                                            @if (!string.IsNullOrEmpty(project.GitHubURL))
+                                                            {
+                                                                <a href="@project.GitHubURL" target="_blank" class="project-link github-link"
+                                                                    title="GitHub">
+                                                                    <i class="fab fa-github"></i>
+                                                                </a>
+                                                            }
+                                                            @if (!string.IsNullOrEmpty(project.ProjectURL))
+                                                            {
+                                                                <a href="@project.ProjectURL" target="_blank" class="project-link demo-link"
+                                                                    title="Demo">
+                                                                    <i class="fas fa-external-link-alt"></i>
+                                                                </a>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            <div class="project-content">
+                                                <h6 class="project-title">@project.ProjectName</h6>
+                                                @if (!string.IsNullOrEmpty(project.Description))
                                                 {
-                                                    <a href="@project.GitHubURL" target="_blank" class="btn btn-dark btn-sm rounded-2">
-                                                        <i class="fas fa-external-link-alt me-2"></i>Xem dự án
-                                                    </a>
+                                                    <p class="project-description">@project.Description</p>
                                                 }
+                                                @if (!string.IsNullOrEmpty(project.Technologies))
+                                                {
+                                                    <div class="project-tech mb-3">
+                                                        @foreach (var tech in project.Technologies.Split(',',
+                                                                                            StringSplitOptions.RemoveEmptyEntries))
+                                                        {
+                                                            <span class="tech-tag">@tech.Trim()</span>
+                                                        }
+                                                    </div>
+                                                }
+                                                <div class="project-links">
+                                                    @if (!string.IsNullOrEmpty(project.GitHubURL))
+                                                    {
+                                                        <a href="@project.GitHubURL" target="_blank"
+                                                            class="btn btn-outline-dark btn-sm me-2">
+                                                            <i class="fab fa-github me-1"></i>GitHub
+                                                        </a>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(project.ProjectURL))
+                                                    {
+                                                        <a href="@project.ProjectURL" target="_blank" class="btn btn-primary btn-sm">
+                                                            <i class="fas fa-external-link-alt me-1"></i>Xem website
+                                                        </a>
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -146,7 +209,8 @@
                         }
                         else
                         {
-                            <div class="text-center py-3">
+                            <div class="text-center py-5">
+                                <i class="fas fa-code fa-3x text-muted mb-3"></i>
                                 <p class="text-muted">Đang tải dự án...</p>
                             </div>
                         }
@@ -289,8 +353,118 @@
         }
     }
 
+    private string GetImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrEmpty(imageUrl))
+            return "";
+
+        if (imageUrl.StartsWith("http"))
+            return imageUrl;
+
+        return $"https://localhost:7254{imageUrl}";
+    }
+
     public void Dispose()
     {
         ApiService.ServerStatusChanged -= OnServerStatusChanged;
     }
 }
+
+<style>
+    .social-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        margin: 0 5px;
+    }
+
+    .social-btn:hover {
+        transform: translateY(-2px);
+        color: white;
+        opacity: 0.8;
+    }
+
+    .facebook-btn {
+        background-color: #1877f2;
+    }
+
+    .linkedin-btn {
+        background-color: #0077b5;
+    }
+
+    .github-btn {
+        background-color: #333;
+    }
+
+    /* Project Cards */
+    .project-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .project-image {
+        height: 180px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .project-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .project-content {
+        padding: 16px;
+    }
+
+    .project-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .project-description {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .project-tech {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .tech-tag {
+        background: #f8f9fa;
+        color: #495057;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        border: 1px solid #dee2e6;
+    }
+</style>

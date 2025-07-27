@@ -590,6 +590,8 @@ namespace BioWeb.client.Services
             }
         }
 
+
+
         /// <summary>
         /// Get file information
         /// </summary>
@@ -729,7 +731,8 @@ namespace BioWeb.client.Services
                     Address = contact.Address,
                     FacebookURL = contact.FacebookURL,
                     GitHubURL = contact.GitHubURL,
-                    LinkedInURL = contact.LinkedInURL
+                    LinkedInURL = contact.LinkedInURL,
+                    CV_FilePath = contact.CV_FilePath
                 };
 
                 var json = JsonSerializer.Serialize(request, _jsonOptions);

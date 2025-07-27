@@ -1,0 +1,551 @@
+@page "/admin/bio"
+@using BioWeb.Shared.Models.DTOs
+@using BioWeb.client.Services
+@using BioWeb.client.Components
+@using BioWeb.client.Components.Shared
+@using Microsoft.AspNetCore.Components.Forms
+@using System.IO
+@inject IApiService ApiService
+@inject IAuthService AuthService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>Quản trị hồ sơ</PageTitle>
+
+<link href="css/admin-bio.css" rel="stylesheet" />
+
+<AdminGuard>
+    <!-- Fixed Header -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="/admin/bio">
+                <i class="fas fa-user-cog me-2"></i>Quản trị hồ sơ
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/admin/blog">
+                    <i class="fas fa-blog me-2"></i>Blog
+                </a>
+                <button class="btn btn-outline-danger btn-sm ms-2" @onclick="Logout">
+                    <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Server Status Component -->
+    <ServerStatusComponent IsServerDown="@isServerDown" ErrorMessage="@serverErrorMessage" OnRetry="@HandleRetry" />
+
+    @if (!isServerDown)
+    {
+        @if (isLoading)
+        {
+            <div class="main-content">
+                <div class="bio-container">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p class="mt-3">Đang tải thông tin...</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="main-content">
+                <div class="bio-container">
+                    <form @onsubmit="SaveAllData" @onsubmit:preventDefault="true">
+
+                        <!-- Avatar Section -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-user-circle me-2"></i>Ảnh đại diện
+                                </h5>
+                                <FileUploadComponent UploadEndpoint="/api/upload/avatar" AcceptedTypes="image/*" MaxSizeInMB="5"
+                                    CurrentImageUrl="@avatarUrl" Label="Ảnh đại diện"
+                                    OnUploadSuccess="HandleAvatarUploadSuccess" OnRemoveImage="HandleRemoveAvatar" />
+                            </div>
+                        </div>
+
+                        <!-- Basic Info Section -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-id-card me-2"></i>Thông tin cơ bản
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-medium">Họ và tên</label>
+                                        <input type="text" class="form-control" @bind="fullName" placeholder="Nhập họ và tên" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-medium">Chức danh</label>
+                                        <input type="text" class="form-control" @bind="jobTitle"
+                                            placeholder="Ví dụ: Full-stack Developer" />
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">Giới thiệu bản thân</label>
+                                    <textarea class="form-control" rows="4" @bind="bioSummary"
+                                        placeholder="Viết một đoạn giới thiệu về bản thân, kinh nghiệm và kỹ năng của bạn..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Info Section -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-address-book me-2"></i>Thông tin liên hệ
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-medium">Email</label>
+                                        <input type="email" class="form-control" @bind="email" placeholder="example@email.com" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-medium">Số điện thoại</label>
+                                        <input type="tel" class="form-control" @bind="phone" placeholder="+84 123 456 789" />
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">Địa chỉ</label>
+                                    <input type="text" class="form-control" @bind="address" placeholder="Thành phố, Quốc gia" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Social Media Section -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-share-alt me-2"></i>Mạng xã hội
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-medium">Facebook</label>
+                                        <input type="url" class="form-control" @bind="facebookUrl" placeholder="https://facebook.com/username" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-medium">LinkedIn</label>
+                                        <input type="url" class="form-control" @bind="linkedinUrl" placeholder="https://linkedin.com/in/username" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-medium">GitHub</label>
+                                        <input type="url" class="form-control" @bind="githubUrl" placeholder="https://github.com/username" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CV Upload Section -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-file-pdf me-2"></i>CV / Resume
+                                </h5>
+                                <FileUploadComponent UploadEndpoint="/api/upload/cv" AcceptedTypes=".pdf" MaxSizeInMB="5"
+                                    CurrentImageUrl="@cvFilePath" Label="CV / Resume"
+                                    OnUploadSuccess="HandleCVUploadSuccess" OnRemoveImage="HandleRemoveCV" />
+                            </div>
+                        </div>
+
+                        <!-- Projects Section -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-project-diagram me-2"></i>Dự án
+                                </h5>
+                                @if (projects != null && projects.Any())
+                                {
+                                    @foreach (var project in projects.Select((p, index) => new { Project = p, Index = index }))
+                                    {
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0 fw-bold text-primary">
+                                                    <i class="fas fa-project-diagram me-2"></i>Dự án @(project.Index + 1)
+                                                </h6>
+                                                <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveProject(project.Index)">
+                                                    <i class="fas fa-trash me-1"></i>Xóa
+                                                </button>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Basic Information -->
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-medium">
+                                                            <i class="fas fa-tag me-1 text-primary"></i>Tên dự án
+                                                        </label>
+                                                        <input type="text" class="form-control" @bind="project.Project.ProjectName" placeholder="Tên dự án" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-medium">
+                                                            <i class="fas fa-code me-1 text-primary"></i>Công nghệ
+                                                        </label>
+                                                        <input type="text" class="form-control" @bind="project.Project.Technologies" placeholder="React, .NET, SQL Server..." />
+                                                        <div class="form-text">Phân cách bằng dấu phẩy</div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Description -->
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium">
+                                                        <i class="fas fa-align-left me-1 text-primary"></i>Mô tả
+                                                    </label>
+                                                    <textarea class="form-control" rows="3" @bind="project.Project.Description"
+                                                              placeholder="Mô tả chi tiết về dự án..."></textarea>
+                                                </div>
+
+                                                <!-- Links -->
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-medium">
+                                                            <i class="fas fa-external-link-alt me-1 text-primary"></i>Link demo
+                                                        </label>
+                                                        <input type="url" class="form-control" @bind="project.Project.ProjectURL" placeholder="https://demo.example.com" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-medium">
+                                                            <i class="fab fa-github me-1 text-primary"></i>Link GitHub
+                                                        </label>
+                                                        <input type="url" class="form-control" @bind="project.Project.GitHubURL" placeholder="https://github.com/username/repo" />
+                                                    </div>
+                                                </div>
+                                                <!-- Thumbnail Upload Section -->
+                                                <div class="row">
+                                                    <div class="col-md-8 mb-3">
+                                                        <div class="card border-0 bg-light">
+                                                            <div class="card-body p-3">
+                                                                <h6 class="card-title mb-3">
+                                                                    <i class="fas fa-image me-2 text-primary"></i>Hình ảnh dự án
+                                                                </h6>
+                                                                <FileUploadComponent UploadEndpoint="/api/upload/project-thumbnail" AcceptedTypes="image/*" MaxSizeInMB="5"
+                                                                    CurrentImageUrl="@project.Project.ThumbnailURL" Label="Ảnh thumbnail"
+                                                                    OnUploadSuccess="@((url) => HandleProjectThumbnailUploadSuccess(url, project.Index))"
+                                                                    OnRemoveImage="@(() => HandleRemoveProjectThumbnail(project.Index))" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4 mb-3">
+                                                        <label class="form-label fw-medium">Thứ tự hiển thị</label>
+                                                        <input type="number" class="form-control" @bind="project.Project.DisplayOrder" min="1" />
+
+                                                        <div class="mt-3">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" @bind="project.Project.IsPublished" id="published_@project.Index">
+                                                                <label class="form-check-label" for="published_@project.Index">
+                                                                    <i class="fas fa-eye me-1"></i>Hiển thị công khai
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-muted text-center py-3">Chưa có dự án nào. Nhấn "Thêm dự án" để bắt đầu.</p>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="text-center mb-4">
+                            <button type="button" class="btn btn-success btn-lg me-3" @onclick="AddProject">
+                                <i class="fas fa-plus me-2"></i>Thêm dự án mới
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-save me-2"></i>Lưu tất cả thay đổi
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        }
+    }
+}
+
+</AdminGuard>
+
+<!-- Notification Component -->
+<NotificationComponent @ref="notificationComponent" />
+
+@code {
+    // Form data properties
+    private string avatarUrl = "";
+    private string fullName = "";
+    private string jobTitle = "";
+    private string bioSummary = "";
+    private string email = "";
+    private string phone = "";
+    private string address = "";
+    private string facebookUrl = "";
+    private string linkedinUrl = "";
+    private string githubUrl = "";
+    private string cvFilePath = "";
+
+    // Original data for comparison
+    private AboutMeDto? aboutMe;
+    private List<ProjectDto> projects = new();
+    private ContactInfoDto? contact;
+
+    // UI state
+    private bool isLoading = true;
+    private bool isServerDown = false;
+    private string serverErrorMessage = "";
+    private NotificationComponent? notificationComponent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to server status changes
+        ApiService.ServerStatusChanged += OnServerStatusChanged;
+
+        // Check server health first
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadBioData();
+        }
+    }
+
+    private void OnServerStatusChanged(bool isHealthy, string errorMessage)
+    {
+        isServerDown = !isHealthy;
+        serverErrorMessage = errorMessage;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadBioData()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Load all data concurrently
+            var aboutMeTask = ApiService.GetAboutMeAsync();
+            var projectsTask = ApiService.GetPublishedProjectsAsync();
+            var contactTask = ApiService.GetContactInfoDto();
+
+            await Task.WhenAll(aboutMeTask, projectsTask, contactTask);
+
+            aboutMe = await aboutMeTask;
+            projects = await projectsTask;
+            contact = await contactTask;
+
+            // Populate form fields with existing data
+            PopulateFormFields();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading bio data: {ex.Message}");
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void PopulateFormFields()
+    {
+        if (aboutMe != null)
+        {
+            avatarUrl = aboutMe.AvatarURL ?? "";
+            fullName = aboutMe.FullName ?? "";
+            jobTitle = aboutMe.JobTitle ?? "";
+            bioSummary = aboutMe.BioSummary ?? "";
+        }
+
+        if (contact != null)
+        {
+            email = contact.Email ?? "";
+            phone = contact.PhoneNumber ?? "";
+            address = contact.Address ?? "";
+            facebookUrl = contact.FacebookURL ?? "";
+            linkedinUrl = contact.LinkedInURL ?? "";
+            githubUrl = contact.GitHubURL ?? "";
+            cvFilePath = contact.CV_FilePath ?? "";
+        }
+    }
+
+    private async Task HandleRetry()
+    {
+        isServerDown = false;
+        serverErrorMessage = "";
+        StateHasChanged();
+
+        var isServerHealthy = await ApiService.CheckServerHealthAsync();
+        if (isServerHealthy)
+        {
+            await LoadBioData();
+        }
+    }
+
+    // Avatar methods
+    private void HandleAvatarUploadSuccess(string newAvatarUrl)
+    {
+        avatarUrl = newAvatarUrl;
+        StateHasChanged();
+    }
+
+    private void HandleRemoveAvatar()
+    {
+        avatarUrl = "";
+        StateHasChanged();
+    }
+
+    // CV methods
+    private void HandleCVUploadSuccess(string newCVUrl)
+    {
+        cvFilePath = newCVUrl;
+        StateHasChanged();
+    }
+
+    private void HandleRemoveCV()
+    {
+        cvFilePath = "";
+        StateHasChanged();
+    }
+
+    // Project methods
+    private void AddProject()
+    {
+        var newProject = new ProjectDto
+        {
+            ProjectName = "",
+            Description = "",
+            Technologies = "",
+            ProjectURL = "",
+            GitHubURL = "",
+            ThumbnailURL = "",
+            DisplayOrder = projects.Count + 1,
+            IsPublished = true
+        };
+        projects.Add(newProject);
+        StateHasChanged();
+    }
+
+    private void RemoveProject(int index)
+    {
+        if (index >= 0 && index < projects.Count)
+        {
+            projects.RemoveAt(index);
+            StateHasChanged();
+        }
+    }
+
+    // Project thumbnail methods
+    private void HandleProjectThumbnailUploadSuccess(string newThumbnailUrl, int projectIndex)
+    {
+        if (projectIndex >= 0 && projectIndex < projects.Count)
+        {
+            projects[projectIndex].ThumbnailURL = newThumbnailUrl;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleRemoveProjectThumbnail(int projectIndex)
+    {
+        if (projectIndex >= 0 && projectIndex < projects.Count)
+        {
+            projects[projectIndex].ThumbnailURL = "";
+            StateHasChanged();
+        }
+    }
+
+
+
+    // Save all data
+    private async Task SaveAllData()
+    {
+        try
+        {
+            // Update AboutMe
+            if (aboutMe != null)
+            {
+                aboutMe.FullName = fullName;
+                aboutMe.JobTitle = jobTitle;
+                aboutMe.BioSummary = bioSummary;
+                aboutMe.AvatarURL = avatarUrl;
+
+                var aboutMeResponse = await ApiService.UpdateAboutMeAsync(aboutMe);
+                if (!aboutMeResponse.Success)
+                {
+                    await notificationComponent?.ShowAsync("Lỗi", $"Cập nhật thông tin cá nhân thất bại: {aboutMeResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                    return;
+                }
+            }
+
+            // Update Contact Info
+            if (contact != null)
+            {
+                contact.PhoneNumber = phone;
+                contact.Address = address;
+                contact.FacebookURL = facebookUrl;
+                contact.LinkedInURL = linkedinUrl;
+                contact.GitHubURL = githubUrl;
+                contact.CV_FilePath = cvFilePath;
+
+                var contactResponse = await ApiService.UpdateContactAsync(contact);
+                if (!contactResponse.Success)
+                {
+                    await notificationComponent?.ShowAsync("Lỗi", $"Cập nhật thông tin liên hệ thất bại: {contactResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                    return;
+                }
+            }
+
+            // Update Projects
+            foreach (var project in projects)
+            {
+                if (project.ProjectID > 0)
+                {
+                    var updateResponse = await ApiService.UpdateProjectAsync(project.ProjectID, project);
+                    if (!updateResponse.Success)
+                    {
+                        await notificationComponent?.ShowAsync("Lỗi", $"Cập nhật dự án {project.ProjectName} thất bại: {updateResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                        return;
+                    }
+                }
+                else
+                {
+                    var createResponse = await ApiService.CreateProjectAsync(project);
+                    if (!createResponse.Success)
+                    {
+                        await notificationComponent?.ShowAsync("Lỗi", $"Tạo dự án {project.ProjectName} thất bại: {createResponse.Message}", NotificationComponent.NotificationType.Error)!;
+                        return;
+                    }
+                }
+            }
+
+            // Show success message
+            await notificationComponent?.ShowAsync("Thành công", "Đã lưu tất cả thay đổi thành công!", NotificationComponent.NotificationType.Success)!;
+
+            // Reload data to reflect changes
+            await LoadBioData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving data: {ex.Message}");
+            await notificationComponent?.ShowAsync("Lỗi", "Có lỗi xảy ra khi lưu dữ liệu!", NotificationComponent.NotificationType.Error)!;
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/me/admin/login");
+    }
+
+    public void Dispose()
+    {
+        ApiService.ServerStatusChanged -= OnServerStatusChanged;
+    }
+}

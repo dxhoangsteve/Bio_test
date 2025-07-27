@@ -1,0 +1,174 @@
+@using Microsoft.AspNetCore.Components
+@inject IJSRuntime JSRuntime
+
+<div class="notification-container @(isVisible ? "show" : "")">
+    <div class="notification @GetNotificationClass()">
+        <div class="notification-icon">
+            <i class="@GetIconClass()"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">@title</div>
+            <div class="notification-message">@message</div>
+        </div>
+        <button type="button" class="notification-close" @onclick="Hide">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+<style>
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease-in-out;
+        pointer-events: none;
+    }
+
+    .notification-container.show {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: all;
+    }
+
+    .notification {
+        display: flex;
+        align-items: center;
+        min-width: 350px;
+        max-width: 500px;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .notification.success {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+    }
+
+    .notification.error {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+    }
+
+    .notification.warning {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+    }
+
+    .notification.info {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+    }
+
+    .notification-icon {
+        font-size: 24px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+
+    .notification-message {
+        font-size: 14px;
+        opacity: 0.9;
+        line-height: 1.4;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px;
+        margin-left: 12px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+        flex-shrink: 0;
+    }
+
+    .notification-close:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+
+@code {
+    private bool isVisible = false;
+    private string title = "";
+    private string message = "";
+    private NotificationType type = NotificationType.Info;
+    private Timer? autoHideTimer;
+
+    public enum NotificationType
+    {
+        Success,
+        Error,
+        Warning,
+        Info
+    }
+
+    public async Task ShowAsync(string title, string message, NotificationType type = NotificationType.Info, int autoHideMs = 5000)
+    {
+        this.title = title;
+        this.message = message;
+        this.type = type;
+        
+        isVisible = true;
+        StateHasChanged();
+
+        // Auto hide after specified time
+        if (autoHideMs > 0)
+        {
+            autoHideTimer?.Dispose();
+            autoHideTimer = new Timer(async _ => await Hide(), null, autoHideMs, Timeout.Infinite);
+        }
+    }
+
+    public async Task Hide()
+    {
+        isVisible = false;
+        autoHideTimer?.Dispose();
+        StateHasChanged();
+    }
+
+    private string GetNotificationClass()
+    {
+        return type switch
+        {
+            NotificationType.Success => "success",
+            NotificationType.Error => "error",
+            NotificationType.Warning => "warning",
+            NotificationType.Info => "info",
+            _ => "info"
+        };
+    }
+
+    private string GetIconClass()
+    {
+        return type switch
+        {
+            NotificationType.Success => "fas fa-check-circle",
+            NotificationType.Error => "fas fa-exclamation-circle",
+            NotificationType.Warning => "fas fa-exclamation-triangle",
+            NotificationType.Info => "fas fa-info-circle",
+            _ => "fas fa-info-circle"
+        };
+    }
+
+    public void Dispose()
+    {
+        autoHideTimer?.Dispose();
+    }
+}

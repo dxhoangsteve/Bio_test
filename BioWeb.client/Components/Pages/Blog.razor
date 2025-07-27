@@ -31,101 +31,100 @@
     {
         <div class="main-content">
             <div class="blog-container">
-                <!-- Blog Header Card -->
-                <div class="blog-header-card">
-                    <h1 class="blog-title">Báo chí & Truyền thông</h1>
-                    <p class="blog-subtitle">Chia sẻ kiến thức và kinh nghiệm</p>
-                </div>
-
-                <!-- Category Filter Card -->
-                @if (categories != null && categories.Any())
+                @if (!showArticleDetail)
                 {
-                    <div class="category-filter-card">
-                        <h3 class="filter-title">Chủ đề</h3>
-
-                        <div class="category-filters">
-                            <button class="btn category-filter @(selectedCategoryId == 0 ? "active" : "")"
-                                    @onclick="() => FilterByCategory(0)">
-                                Tất cả
-                            </button>
-                            @foreach (var category in categories)
-                            {
-                                <button class="btn category-filter @(selectedCategoryId == category.CategoryID ? "active" : "")"
-                                        @onclick="() => FilterByCategory(category.CategoryID)">
-                                    @category.CategoryName
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-
-                <!-- Articles Container -->
-                <div class="articles-container">
-                    @if (filteredArticles != null && filteredArticles.Any())
+                    @if (categories != null && categories.Any())
                     {
-                        <div class="articles-grid">
-                            @foreach (var article in filteredArticles)
-                            {
-                                <div class="article-card" @onclick="() => ViewArticle(article)">
-                                    <h3 class="article-title">@article.Title</h3>
-                                    <div class="article-meta">
-                                        <span><i class="fas fa-tag"></i> @article.CategoryName</span>
-                                        <span><i class="fas fa-calendar"></i> @article.CreatedAt.ToString("dd/MM/yyyy")</span>
-                                    </div>
-                                    <div class="article-content">
-                                        @if (article.Content.Length > 150)
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">Chủ đề</h5>
+
+                                <!-- Horizontal scrollable categories for all devices -->
+                                <div class="category-scroll-container">
+                                    <div class="d-flex gap-2 category-scroll">
+                                        <button class="btn @(selectedCategoryId == 0 ? "btn-dark" : "btn-outline-secondary") btn-sm rounded-pill flex-shrink-0"
+                                                @onclick="() => FilterByCategory(0)">
+                                            Tất cả
+                                        </button>
+                                        @foreach (var category in categories)
                                         {
-                                            @((MarkupString)(article.Content.Substring(0, 150) + "..."))
-                                        }
-                                        else
-                                        {
-                                            @((MarkupString)article.Content)
+                                            <button class="btn @(selectedCategoryId == category.CategoryID ? "btn-dark" : "btn-outline-secondary") btn-sm rounded-pill flex-shrink-0"
+                                                    @onclick="() => FilterByCategory(category.CategoryID)">
+                                                @category.CategoryName
+                                            </button>
                                         }
                                     </div>
                                 </div>
-                            }
+                            </div>
                         </div>
                     }
-                    else
-                    {
-                        <div class="empty-state">
-                            <i class="fas fa-file-alt"></i>
-                            <h4>
-                                @if (selectedCategoryId == 0)
-                                {
-                                    <span>Chưa có bài viết nào</span>
-                                }
-                                else
-                                {
-                                    <span>Không có bài viết trong chủ đề này</span>
-                                }
-                            </h4>
-                            <p>Hãy quay lại sau để đọc những bài viết mới nhất!</p>
-                        </div>
-                    }
-                </div>
 
-                <!-- Article Detail Modal -->
-                @if (selectedArticle != null && showArticleDetail)
-                {
-                    <div class="article-modal" @onclick="CloseArticleDetail">
-                        <div class="article-modal-content" @onclick:stopPropagation="true">
-                            <div class="article-modal-header">
-                                <h2 class="article-modal-title">@selectedArticle.Title</h2>
-                                <button class="close-button" @onclick="CloseArticleDetail">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div class="article-modal-meta">
-                                <span><i class="fas fa-tag"></i> @selectedArticle.CategoryName</span>
-                                <span><i class="fas fa-calendar"></i> @selectedArticle.CreatedAt.ToString("dd/MM/yyyy")</span>
-                            </div>
-                            <div class="article-modal-body">
-                                @((MarkupString)selectedArticle.Content)
-                            </div>
+                    <!-- Articles Container -->
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            @if (filteredArticles != null && filteredArticles.Any())
+                            {
+                                <div class="row g-4">
+                                    @foreach (var article in filteredArticles)
+                                    {
+                                        <div class="col-lg-6 col-md-6 col-12">
+                                            <div class="card bg-light border-0 h-100 article-hover" style="cursor: pointer;" @onclick="() => ViewArticle(article)">
+                                                <div class="card-body px-4 py-3">
+                                                    <h6 class="card-title fw-bold mb-2 text-truncate">@article.Title</h6>
+                                                    <div class="text-muted small">
+                                                        <i class="fas fa-calendar me-1"></i>@article.CreatedAt.ToString("dd/MM/yyyy")
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5">
+                                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                                    <h5>
+                                        @if (selectedCategoryId == 0)
+                                        {
+                                            <span>Chưa có bài viết nào</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Không có bài viết trong chủ đề này</span>
+                                        }
+                                    </h5>
+                                    <p class="text-muted">Hãy quay lại sau để đọc những bài viết mới nhất!</p>
+                                </div>
+                            }
                         </div>
                     </div>
                 }
+                else
+                {
+                    <!-- Article Detail View -->
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="BackToArticles">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            @if (selectedArticle != null)
+                            {
+                                <h2 class="mb-3">@selectedArticle.Title</h2>
+                                <div class="d-flex gap-3 mb-4 text-muted">
+                                    <span><i class="fas fa-tag me-1"></i>@selectedArticle.CategoryName</span>
+                                    <span><i class="fas fa-calendar me-1"></i>@selectedArticle.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="article-content">
+                                    @((MarkupString)selectedArticle.Content)
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
             </div>
         </div>
     }
@@ -141,6 +140,7 @@
     private bool isLoading = true;
     private bool isServerDown = false;
     private string serverErrorMessage = "";
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -203,20 +203,34 @@
         }
     }
 
-    private void FilterByCategory(int categoryId)
+    private async Task FilterByCategory(int categoryId)
     {
-        selectedCategoryId = categoryId;
-        
-        if (categoryId == 0)
+        try
         {
-            filteredArticles = articles;
+            selectedCategoryId = categoryId;
+            isLoading = true;
+            StateHasChanged();
+
+            if (categoryId == 0)
+            {
+                filteredArticles = await ApiService.GetPublishedArticlesAsync();
+            }
+            else
+            {
+                filteredArticles = await ApiService.GetArticlesByCategoryAsync(categoryId);
+            }
+
+            isLoading = false;
         }
-        else
+        catch (Exception ex)
         {
-            filteredArticles = articles.Where(a => a.CategoryID == categoryId).ToList();
+            Console.WriteLine($"Error filtering articles: {ex.Message}");
+            isLoading = false;
         }
-        
-        StateHasChanged();
+        finally
+        {
+            StateHasChanged();
+        }
     }
 
     private void ViewArticle(ArticleDto article)
@@ -226,12 +240,14 @@
         StateHasChanged();
     }
 
-    private void CloseArticleDetail()
+    private void BackToArticles()
     {
         selectedArticle = null;
         showArticleDetail = false;
         StateHasChanged();
     }
+
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

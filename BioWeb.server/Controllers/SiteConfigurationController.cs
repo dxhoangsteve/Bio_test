@@ -354,6 +354,7 @@ namespace BioWeb.Server.Controllers
                 config.FacebookURL = request.FacebookURL;
                 config.GitHubURL = request.GitHubURL;
                 config.LinkedInURL = request.LinkedInURL;
+                config.CV_FilePath = request.CV_FilePath;
                 config.UpdatedAt = DateTime.UtcNow;
 
                 await _siteConfigService.UpdateSiteConfigurationAsync(config);
@@ -463,6 +464,7 @@ namespace BioWeb.Server.Controllers
         public string FacebookURL { get; set; } = "";
         public string GitHubURL { get; set; } = "";
         public string LinkedInURL { get; set; } = "";
+        public string CV_FilePath { get; set; } = "";
     }
 
     /// <summary>
