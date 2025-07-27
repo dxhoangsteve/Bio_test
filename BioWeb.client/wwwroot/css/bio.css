@@ -292,10 +292,25 @@
 
 /* Footer */
 .bio-footer {
-    text-align: center;
     padding: 2rem 0;
     color: var(--text-secondary);
     font-size: 0.9rem;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.footer-left {
+    flex: 1;
+}
+
+.footer-center {
+    text-align: center;
+    flex: 2;
 }
 
 .bio-footer a {
@@ -305,6 +320,20 @@
 
 .bio-footer a:hover {
     text-decoration: underline;
+}
+
+/* Mobile Footer */
+@media (max-width: 767px) {
+    .footer-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .footer-left,
+    .footer-center {
+        text-align: center;
+        flex: none;
+    }
 }
 
 /* Mobile Responsive */

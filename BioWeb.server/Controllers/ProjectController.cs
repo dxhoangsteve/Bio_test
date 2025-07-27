@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using BioWeb.Server.Models;
 using BioWeb.Shared.Models.DTOs;
+using BioWeb.Shared.Models.Responses;
 using BioWeb.Server.ViewModels.Requests;
 using BioWeb.Server.ViewModels.Responses;
 using BioWeb.Server.Attributes;
@@ -231,73 +232,14 @@ namespace BioWeb.Server.Controllers
             }
         }
 
-        [HttpPost]
-        [AdminAuth]
-        public async Task<ActionResult<SimpleResponse>> CreateProject([FromBody] UpdateProjectRequest request)
-        {
-            // Kiểm tra ModelState validation
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
-                    .SelectMany(x => x.Value.Errors)
-                    .Select(x => x.ErrorMessage)
-                    .ToList();
 
-                return BadRequest(new SimpleResponse
-                {
-                    Success = false,
-                    Message = "Dữ liệu không hợp lệ: " + string.Join(", ", errors)
-                });
-            }
-
-            try
-            {
-                var project = new Project
-                {
-                    ProjectName = request.ProjectName,
-                    Description = request.Description,
-                    GitHubURL = request.GitHubURL,
-                    ProjectURL = request.ProjectURL,
-                    ThumbnailURL = request.ThumbnailURL,
-                    Technologies = request.Technologies,
-                    DisplayOrder = request.DisplayOrder,
-                    IsPublished = request.IsPublished
-                };
-                var result = await _projectService.CreateProjectAsync(project);
-                if (result)
-                {
-                    return Created($"/api/Project/{project.ProjectID}", new SimpleResponse
-                    {
-                        Success = true,
-                        Message = "Tạo thành công"
-                    });
-                }
-                else
-                {
-                    return BadRequest(new SimpleResponse
-                    {
-                        Success = false,
-                        Message = "Tạo thất bại"
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new SimpleResponse
-                {
-                    Success = false,
-                    Message = $"Lỗi: {ex.Message}"
-                });
-            }
-        }
 
         /// <summary>
         /// Tạo project mới - admin only
         /// </summary>
         [HttpPost]
         [AdminAuth]
-        public async Task<ActionResult<ProjectApiResponse<ProjectResponse>>> CreateProject([FromBody] CreateProjectRequest request)
+        public async Task<ActionResult<BioWeb.Shared.Models.Responses.ApiResponse<ProjectDto>>> CreateProject([FromBody] CreateProjectRequest request)
         {
             try
             {
@@ -320,14 +262,14 @@ namespace BioWeb.Server.Controllers
 
                 if (!result)
                 {
-                    return BadRequest(new ProjectApiResponse<ProjectResponse>
+                    return BadRequest(new BioWeb.Shared.Models.Responses.ApiResponse<ProjectDto>
                     {
                         Success = false,
                         Message = "Tạo project thất bại"
                     });
                 }
 
-                var response = new ProjectResponse
+                var response = new ProjectDto
                 {
                     ProjectID = project.ProjectID,
                     ProjectName = project.ProjectName,
@@ -343,7 +285,7 @@ namespace BioWeb.Server.Controllers
                     UpdatedAt = project.UpdatedAt
                 };
 
-                return Ok(new ProjectApiResponse<ProjectResponse>
+                return Ok(new BioWeb.Shared.Models.Responses.ApiResponse<ProjectDto>
                 {
                     Success = true,
                     Message = "Tạo project thành công",
@@ -352,7 +294,7 @@ namespace BioWeb.Server.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new ProjectApiResponse<ProjectResponse>
+                return BadRequest(new BioWeb.Shared.Models.Responses.ApiResponse<ProjectDto>
                 {
                     Success = false,
                     Message = $"Tạo project thất bại: {ex.Message}"

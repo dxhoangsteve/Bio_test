@@ -5,52 +5,43 @@
 @inject IJSRuntime JSRuntime
 
 <div class="file-upload-container">
-    <!-- Current Image Preview -->
+    <!-- Current File Status -->
     @if (!string.IsNullOrEmpty(CurrentImageUrl))
     {
-        <div class="current-file-preview mb-3">
-            <label class="form-label">@(IsImageFile(CurrentImageUrl) ? "Hình ảnh hiện tại:" : "File hiện tại:"):</label>
-            <div class="file-preview-wrapper">
+        <div class="current-file-status mb-3">
+            <div class="status-indicator">
                 @if (IsImageFile(CurrentImageUrl))
                 {
-                    <img src="@CurrentImageUrl" alt="Current image" class="current-image" />
+                    <div class="status-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span class="text-success fw-medium">Đã có ảnh</span>
+                        @* <img src="@CurrentImageUrl" class="current-image-small ms-2" /> *@
+                    </div>
                 }
                 else
                 {
-                    <div class="file-preview">
-                        <div class="file-icon">
-                            <i class="@GetFileIcon(CurrentImageUrl) fa-3x"></i>
-                        </div>
-                        <div class="file-name">
-                            @GetFileName(CurrentImageUrl)
-                        </div>
-                        <a href="@CurrentImageUrl" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                    <div class="status-item">
+                        <i class="@GetFileIcon(CurrentImageUrl) me-2"></i>
+                        <span class="text-success fw-medium">@GetFileTypeText(CurrentImageUrl)</span>
+                        <a href="@CurrentImageUrl" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
                             <i class="fas fa-external-link-alt me-1"></i>Xem file
                         </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger ms-1" @onclick="RemoveCurrentImage"
+                            title="Xóa file hiện tại">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 }
-                <div class="file-actions">
-                    <button type="button" class="btn btn-sm btn-outline-info me-2" @onclick="ShowFileInfo"
-                        title="Xem thông tin file">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="RemoveCurrentImage"
-                        title="Xóa file hiện tại">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+                @if (IsImageFile(CurrentImageUrl))
+                {
+                    <div class="file-actions ms-auto">
+                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="RemoveCurrentImage"
+                            title="Xóa file hiện tại">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                }
             </div>
-            @if (showFileInfo && currentFileInfo != null)
-            {
-                <div class="file-info-details mt-2 p-2 bg-light rounded">
-                    <small class="text-muted">
-                        <strong>Tên file:</strong> @currentFileInfo.FileName<br />
-                        <strong>Kích thước:</strong> @FormatFileSize(currentFileInfo.Size)<br />
-                        <strong>Tạo lúc:</strong> @currentFileInfo.CreatedAt.ToString("dd/MM/yyyy HH:mm")<br />
-                        <strong>Cập nhật:</strong> @currentFileInfo.LastModified.ToString("dd/MM/yyyy HH:mm")
-                    </small>
-                </div>
-            }
         </div>
     }
 
@@ -327,6 +318,20 @@
         if (string.IsNullOrEmpty(url)) return "";
         return Path.GetFileName(new Uri(url).LocalPath);
     }
+
+    private string GetFileTypeText(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "Đã có file";
+        var extension = Path.GetExtension(url).ToLower();
+        return extension switch
+        {
+            ".pdf" => "Đã có CV",
+            ".doc" or ".docx" => "Đã có CV",
+            ".txt" => "Đã có file text",
+            ".zip" or ".rar" or ".7z" => "Đã có file nén",
+            _ => "Đã có file"
+        };
+    }
 }
 
 <style>
@@ -334,45 +339,31 @@
         margin-bottom: 1rem;
     }
 
-    .current-file-preview {
-        position: relative;
+    /* Current File Status Styles */
+    .current-file-status {
+        padding: 0.75rem;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
     }
 
-    .file-preview-wrapper {
-        position: relative;
-        display: inline-block;
-    }
-
-    .file-preview {
+    .status-indicator {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        padding: 1rem;
-        border: 2px solid #dee2e6;
-        border-radius: 8px;
-        background: #f8f9fa;
-        min-width: 200px;
+        justify-content: space-between;
     }
 
-    .file-icon {
-        margin-bottom: 0.5rem;
+    .status-item {
+        display: flex;
+        align-items: center;
     }
 
-    .file-name {
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-align: center;
-        margin-bottom: 0.5rem;
-        word-break: break-word;
-    }
-
-    .current-image {
-        max-width: 200px;
-        max-height: 200px;
-        border-radius: 8px;
-        border: 2px solid #dee2e6;
+    .current-image-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
         object-fit: cover;
-        display: block;
     }
 
     .file-actions {

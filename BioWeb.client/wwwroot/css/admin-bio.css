@@ -43,9 +43,29 @@
     color: #007bff;
 }
 
+/* Statistics Styles */
+.stat-item {
+    padding: 1rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
 /* Bootstrap 5 gap utilities work well, minimal custom CSS needed */
 @media (max-width: 768px) {
     .btn-lg {
         min-width: 100px !important;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
     }
 }
