@@ -10,7 +10,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // Configure HttpClient to call server API
 // Tự động detect môi trường và sử dụng URL phù hợp
 var baseAddress = builder.HostEnvironment.IsProduction()
-    ? builder.Configuration["ApiBaseUrl"] ?? "https://localhost:5001"
+    ? builder.Configuration["ApiBaseUrl"] ?? "https://dxhoang.site"
     : "https://localhost:7254"; // Development: sử dụng port 7254
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });

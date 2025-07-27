@@ -13,11 +13,11 @@
             placeholder="Ví dụ: Technology, Lifestyle..." />
     </div>
 
-    <div class="form-group mb-3">
+    @* <div class="form-group mb-3">
         <label class="form-label">Mô tả</label>
         <textarea class="form-control" rows="3" @bind="newCategory.Description"
             placeholder="Mô tả ngắn về category này..."></textarea>
-    </div>
+    </div> *@
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
@@ -49,7 +49,7 @@
             <input type="text" class="form-control" @bind="selectedCategory.CategoryName" />
         </div>
 
-        <div class="form-group mb-3">
+        @* <div class="form-group mb-3">
             <label class="form-label">Mô tả</label>
             <textarea class="form-control" rows="3" @bind="selectedCategory.Description"></textarea>
         </div>
@@ -68,7 +68,7 @@
                     </small>
                 </div>
             </div>
-        </div>
+        </div> *@
     }
 
     @if (!string.IsNullOrEmpty(errorMessage))

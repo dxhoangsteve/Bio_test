@@ -147,14 +147,19 @@
         {
             contact = await ApiService.GetContactAsync();
 
-            // TODO: Load admin stats (view count, last updated)
-            // var stats = await ApiService.GetContactStatsAsync();
-            // viewCount = stats.ViewCount;
-            // lastUpdated = stats.LastUpdated;
-
-            // Temporary mock data
-            viewCount = 1234;
-            lastUpdated = DateTime.Now.AddDays(-2);
+            // Load admin stats từ SiteConfiguration
+            var siteConfig = await ApiService.GetSiteConfigurationAsync();
+            if (siteConfig.Success && siteConfig.Data != null)
+            {
+                viewCount = siteConfig.Data.ViewCount;
+                lastUpdated = siteConfig.Data.UpdatedAt;
+            }
+            else
+            {
+                // Fallback mock data
+                viewCount = 0;
+                lastUpdated = DateTime.Now;
+            }
         }
         catch (Exception ex)
         {

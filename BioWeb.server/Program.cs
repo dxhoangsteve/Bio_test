@@ -40,7 +40,9 @@ builder.Services.AddCors(options =>
             "https://0.0.0.0:7255",
             "https://localhost:7255",
             "http://localhost:7255",
-            "http://0.0.0.0:7255"
+            "http://0.0.0.0:7255",
+            "https://dxhoang.site",
+            "https://www.dxhoang.site"
         };
 
         // Thêm production domain nếu có

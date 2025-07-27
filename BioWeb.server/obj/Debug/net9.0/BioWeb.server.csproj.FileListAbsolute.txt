@@ -184,3 +184,4 @@
 /home/sterb/dev/Bio_test/BioWeb.server/bin/Debug/net9.0/Microsoft.Extensions.FileSystemGlobbing.dll
 /home/sterb/dev/Bio_test/BioWeb.server/bin/Debug/net9.0/Microsoft.JSInterop.dll
 /home/sterb/dev/Bio_test/BioWeb.server/bin/Debug/net9.0/Microsoft.JSInterop.WebAssembly.dll
+/home/sterb/dev/Bio_test/BioWeb.server/bin/Debug/net9.0/BioWeb.db

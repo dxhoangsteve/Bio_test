@@ -100,7 +100,7 @@ namespace BioWeb.client.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync("/api/Seed/check-data");
+                var response = await _httpClient.GetAsync("/api/SiteConfiguration/public");
                 var isHealthy = response.IsSuccessStatusCode;
 
                 ServerStatusChanged?.Invoke(isHealthy, isHealthy ? "" : $"Server trả về: {response.StatusCode}");
@@ -522,9 +522,26 @@ namespace BioWeb.client.Services
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
-                var apiResponse = JsonSerializer.Deserialize<ContactInfoDto>(json, _jsonOptions);
+                var apiResponse = JsonSerializer.Deserialize<BioWeb.client.Models.SiteConfigurationApiResponse<BioWeb.client.Models.ContactResponse>>(json, _jsonOptions);
 
-                return apiResponse ?? new ContactInfoDto();
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    // Map ContactResponse sang ContactInfoDto
+                    var contactInfo = new ContactInfoDto
+                    {
+                        Email = apiResponse.Data.Email,
+                        PhoneNumber = apiResponse.Data.PhoneNumber,
+                        Address = apiResponse.Data.Address,
+                        GitHubURL = apiResponse.Data.GitHubURL,
+                        LinkedInURL = apiResponse.Data.LinkedInURL,
+                        FacebookURL = apiResponse.Data.FacebookURL,
+                        CV_FilePath = apiResponse.Data.CV_FilePath
+                    };
+
+                    return contactInfo;
+                }
+
+                return new ContactInfoDto();
             }
             catch (Exception ex)
             {
@@ -1381,9 +1398,33 @@ namespace BioWeb.client.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<SiteConfigurationDto>>(json, _jsonOptions);
-                    ServerStatusChanged?.Invoke(true, "");
-                    return apiResponse ?? new ApiResponse<SiteConfigurationDto> { Success = false, Message = "Invalid response" };
+                    var apiResponse = JsonSerializer.Deserialize<BioWeb.client.Models.SiteConfigurationApiResponse<BioWeb.client.Models.SiteConfigurationResponse>>(json, _jsonOptions);
+
+                    if (apiResponse?.Success == true && apiResponse.Data != null)
+                    {
+                        // Map SiteConfigurationResponse sang SiteConfigurationDto
+                        var siteConfigDto = new SiteConfigurationDto
+                        {
+                            ConfigID = apiResponse.Data.ConfigID,
+                            FullName = apiResponse.Data.FullName,
+                            JobTitle = apiResponse.Data.JobTitle,
+                            AvatarURL = apiResponse.Data.AvatarURL,
+                            BioSummary = apiResponse.Data.BioSummary,
+                            PhoneNumber = apiResponse.Data.PhoneNumber,
+                            Address = apiResponse.Data.Address,
+                            CV_FilePath = apiResponse.Data.CV_FilePath,
+                            FacebookURL = apiResponse.Data.FacebookURL,
+                            GitHubURL = apiResponse.Data.GitHubURL,
+                            LinkedInURL = apiResponse.Data.LinkedInURL,
+                            ViewCount = apiResponse.Data.ViewCount,
+                            UpdatedAt = apiResponse.Data.UpdatedAt
+                        };
+
+                        ServerStatusChanged?.Invoke(true, "");
+                        return new ApiResponse<SiteConfigurationDto> { Success = true, Data = siteConfigDto };
+                    }
+
+                    return new ApiResponse<SiteConfigurationDto> { Success = false, Message = apiResponse?.Message ?? "Invalid response" };
                 }
 
                 ServerStatusChanged?.Invoke(false, $"API returned: {response.StatusCode}");
